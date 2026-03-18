@@ -35,7 +35,8 @@ df_filtered <- function(df) {
     filter(
       entity_type_desc != "CANDIDATE",
       contribution_receipt_amount > 0,
-      is.na(contributor_name) | contributor_name == "" | contributor_name != "NOTE: ABOVE CONTRIBUTION EARMARKED THROUGH THIS ORGANIZATION."
+      is.na(contributor_name) | contributor_name == "" | contributor_name != "NOTE: ABOVE CONTRIBUTION EARMARKED THROUGH THIS ORGANIZATION.",
+      report_year > 2020
     )
   }
 # Find distribution of finances across type of donor, compute proportion to the total
@@ -45,7 +46,7 @@ df_filtered <- function(df) {
     df_filtered(df) %>%   # apply the filter first
       group_by(entity_type_desc) %>%
       summarise(total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>%
-      mutate(prop = total / sum(total)) %>%
+      mutate(prop = round((total / sum(total))*100, 2)) %>%
       arrange(desc(total))
   }
 
@@ -61,18 +62,18 @@ summarrize_donors <- function(df) {
     slice_max(total, n = 10) %>% 
     arrange(desc(total))
 }
+
 trone_donor_dist <- summarrize_donors(trone_data) %>% mutate(candidate = "Trone")
 delaney_donor_dist <- summarrize_donors(delaney_data) %>% mutate(candidate = "Delaney")
 thompson_donor_dist <- summarrize_donors(thompson_data) %>% mutate(candidate = "Thompson")
 
 ## Combine all data
 all_donors <- bind_rows(trone_donor_dist, delaney_donor_dist, thompson_donor_dist)
-all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist, thompson_fin_dist)
+all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist, thompson_fin_dist) %>% 
+  filter(!entity_type_desc %in% c("CAMPAIGN COMMITTEE", "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"))
 
-all_dist %>% 
-  filter(!entity_type_desc %in% c("CAMPAIGN COMMITTEE", "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE")) %>%
-  
-  ggplot(aes(x = entity_type_desc, y = total, fill = candidate)) +
+ggplot(all_dist) + 
+aes(x = entity_type_desc, y = total, fill = candidate) +
   geom_col(position = "dodge") +
   
   geom_text(

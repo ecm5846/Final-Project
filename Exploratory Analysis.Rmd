@@ -1,0 +1,54 @@
+---
+title: "Exploratory Analysis"
+output: html_notebook
+---
+
+## Become acquainted with your data sources:
+
+-   Where did you find them?
+
+    -   I sourced all of my data from <https://www.fec.gov>.
+
+-   Who collected/maintains them?
+
+    -   The Federal Elections Commission receives financial reports from people running of for office.
+
+-   When and why were they originally collected?
+
+    -   The data is being collected and maintained in real time. The data is collected to audit where people running for office are getting their financial support.
+
+-   What does a case represent in each data source, and how many total cases are available?
+
+    -   A case in the data represents a donation given by an organization or individual.
+
+```{r}
+delaney_data %>% 
+  summarise(nrows = n()) %>% 
+  pull(nrows)
+```
+
+```{r}
+trone_data %>% 
+  summarise(nrows = n()) %>% 
+  pull(nrows)
+```
+
+```{r}
+thompson_data %>% 
+  summarise(nrows = n()) %>% 
+  pull(nrows)
+```
+
+The higher number for Thompson is because he has a much longer political career. His donations go all the way back to 2008 where Trone and Delaney only have data from the 2020s.
+
+-   What are some of the variables that you plan to use?
+    -   I plan to base most of my analysis on who is donating and the distribution of donations across donor types. Because of this, I'll be making some summary variables to calculate total donations by donor type, and then the proportion to the whole of the various donations.
+
+```{r}
+trone_fin_dist
+```
+
+```{r}
+trone_donor_dist
+```
+
