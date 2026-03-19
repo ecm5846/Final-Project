@@ -6,7 +6,7 @@ library(dplyr)
 library(tmap)    # for static and interactive maps
 library(leaflet) # for interactive maps
 library(ggplot2) # tidyverse data visualization package
-
+library(usmap)
 # Campaign Contribution by Entity Type ------------------------------------
 ggplot(all_dist) + 
   aes(x = entity_type_desc, y = total, fill = candidate) +
@@ -36,7 +36,7 @@ ggplot(all_dist) +
 # https://r.geocompx.org/adv-map
 
 ggplot(all_state) + 
-  aes(x = candidate, y = total, fill = contributor_state) +
+  aes(x = candidate, y = total, fill = state) +
   geom_bar(position = "stack", stat = "identity") +
   
   # geom_text(
@@ -61,6 +61,23 @@ ggplot(all_state) +
     y = "Total Contributions"
   )
 
-us_states_map = tm_shape(us_states, crs = "EPSG:9311") + 
-  tm_polygons() + 
-  tm_layout(frame = FALSE)
+
+# State Contribution Map [WIP] ----------------------------------------------
+plot_usmap(
+  data = all_state,
+  values = "total",
+  include = unique(all_state$state),
+  color = "red"
+) + 
+  scale_fill_continuous(
+    low = "white",
+    high = "red",
+    name = "Contribution Amount",
+    labels = scales::dollar
+  ) + 
+  labs(title = "Northeastern United States") +
+  theme(legend.position = "right")
+
+plot_usmap(data = all_state, values = "total", color = "red") + 
+  scale_fill_continuous(name = "Contribution Amount", labels = scales::comma) + 
+  theme(legend.position = "right")
