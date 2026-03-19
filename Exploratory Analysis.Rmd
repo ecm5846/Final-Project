@@ -51,4 +51,3 @@ trone_fin_dist
 ```{r}
 trone_donor_dist
 ```
-
