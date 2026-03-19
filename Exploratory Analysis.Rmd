@@ -1,7 +1,25 @@
 ---
 title: "Exploratory Analysis"
-output: html_notebook
+output: github_document
 ---
+
+```{r include = FALSE}
+# clean up the RStudio environment 
+rm(list = ls())
+
+# Load packages: `tidyverse`, `lubridate` (if others are needed, load them here)
+library(lubridate)
+library(tidyverse)
+library(esquisse)
+library(dplyr)
+
+# Packages loaded for A.5 leaflet graphic
+library(devtools)
+library(leaflet)
+
+# Load data + objects
+source("Final.R")
+```
 
 ## Become acquainted with your data sources:
 

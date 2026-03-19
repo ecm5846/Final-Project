@@ -64,6 +64,7 @@ summarrize_donors <- function(df) {
 summarrize_state <- function(df) {
   df_filtered(df) %>% 
     group_by(contributor_state) %>% 
+    rename(state = contributor_state) %>% 
     summarise(total = sum(contribution_receipt_amount), .groups = "drop") %>% 
     slice_max(total, n = 5) %>% 
     arrange(desc(total))
@@ -78,9 +79,9 @@ trone_donor_dist <- summarrize_donors(trone_data) %>% mutate(candidate = "Trone"
 delaney_donor_dist <- summarrize_donors(delaney_data) %>% mutate(candidate = "Delaney")
 thompson_donor_dist <- summarrize_donors(thompson_data) %>% mutate(candidate = "Thompson")
 
-trone_state_dist <- summarize_state(trone_data) %>% mutate(candidate = "Trone")
-delaney_state_dist <- summarize_state(delaney_data) %>% mutate(candidate = "Delaney")
-thompson_state_dist <- summarize_state(thompson_data) %>% mutate(candidate = "Thompson")
+trone_state_dist <- summarrize_state(trone_data) %>% mutate(candidate = "Trone")
+delaney_state_dist <- summarrize_state(delaney_data) %>% mutate(candidate = "Delaney")
+thompson_state_dist <- summarrize_state(thompson_data) %>% mutate(candidate = "Thompson")
 
 ## Combine all data
 all_donors <- bind_rows(trone_donor_dist, delaney_donor_dist, thompson_donor_dist)
