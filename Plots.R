@@ -81,3 +81,34 @@ plot_usmap(
 plot_usmap(data = all_state, values = "total", color = "red") + 
   scale_fill_continuous(name = "Contribution Amount", labels = scales::comma) + 
   theme(legend.position = "right")
+
+
+# Candidate Earnings by Year ----------------------------------------------
+max_callouts <- all_year %>% 
+  group_by(candidate) %>% 
+  slice_max(total, n = 1, with_ties = FALSE)
+max_callouts
+
+ggplot(all_year) +
+  aes(
+    x = report_year,
+    y = total,
+    colour = candidate,
+    group = candidate
+  ) +
+  geom_line() +
+  geom_point(
+    data = max_callouts,
+    size = 3
+  ) +
+  geom_segment(
+    data = max_callouts,
+    aes(
+      x = report_year - 5,   # start a bit to the left
+      y = total,         # start a bit above
+      xend = report_year - 0.5,
+      yend = total - 5000
+    ),
+    arrow = arrow(length = unit(0.2, "cm"))
+  ) +
+  theme_minimal()
