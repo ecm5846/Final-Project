@@ -10,7 +10,7 @@ library(usmap)
 # Campaign Contribution by Entity Type ------------------------------------
 ggplot(all_dist) + 
   aes(x = entity_type_desc, y = total, fill = candidate) +
-  geom_col(position = "dodge") +
+  geom_col(position = "dodge", stat = "identity") +
   
   geom_text(
     aes(label = scales::comma(total)),
@@ -22,9 +22,11 @@ ggplot(all_dist) +
   theme(
     panel.grid.minor = element_blank(),
     plot.margin = margin(6, 8, 6, 8),
-    # axis.text.x = element_text(angle = 40, hjust = 1, vjust = 1),
+    axis.text.y = element_text(angle = 40, hjust = 1, vjust = 1),
     legend.position = "bottom"
   ) +
+  
+  scale_y_continuous(labels = dollar) +
   
   labs(
     title = "Contribution Totals by Entity Type",
@@ -36,7 +38,7 @@ ggplot(all_dist) +
 # https://r.geocompx.org/adv-map
 
 ggplot(all_state) + 
-  aes(x = candidate, y = total, fill = state) +
+  aes(x = candidate, y = total, fill = contributor_state) +
   geom_bar(position = "stack", stat = "identity") +
   
   # geom_text(
@@ -84,12 +86,16 @@ plot_usmap(data = all_state, values = "total", color = "red") +
 
 
 # Candidate Earnings by Year ----------------------------------------------
+
+## Identify maximum donation value
 max_callouts <- all_year %>% 
   group_by(candidate) %>% 
   slice_max(total, n = 1, with_ties = FALSE)
 max_callouts
 
-ggplot(all_year) +
+## Build base line plot
+base_plot <- 
+  ggplot(all_year) +
   aes(
     x = report_year,
     y = total,
@@ -97,18 +103,24 @@ ggplot(all_year) +
     group = candidate
   ) +
   geom_line() +
+  ggtitle(label = "Financial Contribution by Year", subtitle = "All Time") + 
+  theme_bw()
+
+## Add call out values to max points
+max_values <- base_plot +
+  geom_segment(
+  data = max_callouts,
+  aes(
+    x = report_year - 5,
+    y = total,
+    xend = report_year - 0.5,
+    yend = total - 5000
+  )
+) +
   geom_point(
     data = max_callouts,
     size = 3
-  ) +
-  geom_segment(
-    data = max_callouts,
-    aes(
-      x = report_year - 5,   # start a bit to the left
-      y = total,         # start a bit above
-      xend = report_year - 0.5,
-      yend = total - 5000
-    ),
-    arrow = arrow(length = unit(0.2, "cm"))
-  ) +
-  theme_minimal()
+  ) 
+max_values
+    
+  
