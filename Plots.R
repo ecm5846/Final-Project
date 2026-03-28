@@ -1,12 +1,13 @@
-
 # Load Packages -----------------------------------------------------------
 library(sf)
 library(terra)
 library(dplyr)
-library(tmap)    # for static and interactive maps
-library(leaflet) # for interactive maps
-library(ggplot2) # tidyverse data visualization package
-library(usmap)
+library(tmap)
+library(ggspatial)
+library(ggplot2)
+library(maps)
+library(leaflet)
+library(prettymapr)
 # Campaign Contribution by Entity Type ------------------------------------
 ggplot(all_dist) + 
   aes(x = entity_type_desc, y = total, fill = candidate) +
@@ -65,25 +66,30 @@ ggplot(all_state) +
 
 
 # State Contribution Map [WIP] ----------------------------------------------
-plot_usmap(
-  data = all_state,
-  values = "total",
-  include = unique(all_state$state),
-  color = "red"
-) + 
-  scale_fill_continuous(
-    low = "white",
-    high = "red",
-    name = "Contribution Amount",
-    labels = scales::dollar
-  ) + 
-  labs(title = "Northeastern United States") +
-  theme(legend.position = "right")
+## https://forum.posit.co/t/how-to-make-markers-have-different-colors-based-on-specific-variable-in-data-frame-using-leaflet-map/186922/3
 
-plot_usmap(data = all_state, values = "total", color = "red") + 
-  scale_fill_continuous(name = "Contribution Amount", labels = scales::comma) + 
-  theme(legend.position = "right")
+# DonationMap <-
+#   leaflet(lat_long_tbl) %>%
+#   addTiles() %>%
+#   addCircleMarkers(radius = 0.5, color = "red") %>%
+#   addMarkers(lng = -77.00, lat = 38.88, popup = "Delaney & Trone HQ") %>% 
+#   setView(-98.55, 39.80, zoom = 4) # middle of the US
+# DonationMap
 
+DonationMap <-
+  leaflet(lat_long_tbl) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    radius = 0.5,
+    color = ~case_when(
+      committee_name == "DAVID TRONE FOR CONGRESS" ~ "blue",
+      committee_name == "APRIL MCCLAIN DELANEY FOR CONGRESS" ~ "red"
+    )
+  ) %>%
+  addMarkers(lng = -77.00, lat = 38.88, popup = "Delaney & Trone HQ") %>% 
+  setView(-98.55, 39.80, zoom = 4)
+
+DonationMap
 
 # Candidate Earnings by Year ----------------------------------------------
 

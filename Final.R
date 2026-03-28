@@ -6,6 +6,7 @@ library(lubridate)
 library(scales)
 library(plotly)
 library(stringdist)
+library(dcData)
 
 # Initial data import -----------------------------------------------------
 
@@ -21,15 +22,28 @@ trone_data <- read_csv("Campaign Donations/MD/Trone/schedule_a-2026-03-17T18_57_
 thompson_data <- read_csv("Campaign Donations/PA/schedule_a-2026-03-17T18_59_04.csv")
 
 # Combine all data sets
-all_data <- rbind(delaney_data, trone_data, thompson_data)
+all_data <- rbind(delaney_data, trone_data, thompson_data) %>% 
+  select(committee_id, committee_name, report_year, transaction_id, 
+         file_number, entity_type, entity_type_desc, unused_contbr_id, 
+         contributor_name, recipient_committee_designation, contributor_first_name, 
+         contributor_middle_name, contributor_last_name, contributor_suffix, 
+         contributor_street_1, contributor_street_2, contributor_city, 
+         contributor_state, contributor_zip, contributor_employer, contributor_occupation, 
+         contributor_id, is_individual, receipt_type_desc, memo_text, 
+         contribution_receipt_date, contribution_receipt_amount, contributor_aggregate_ytd, 
+         candidate_name, candidate_first_name, candidate_last_name, candidate_middle_name, 
+         candidate_office_state, candidate_office_state_full, candidate_office_district, 
+         conduit_committee_id, donor_committee_name, fec_election_year, two_year_transaction_period)
 
 # Cleaning and Standardizing -----------------------------------------------------
 ## Remove candidate contributions (loans etc...), reimbursements/refunds, and duplicate line items. 
+## https://r4ds.hadley.nz/functions.html
 df_filtered <- function(df) {
   df %>%
     filter(
       !entity_type_desc %in% c("CANDIDATE", "CAMPAIGN COMMITTEE", "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
       contribution_receipt_amount > 0,
+      report_year >= 2020
     ) %>% 
     distinct(transaction_id, .keep_all = TRUE)
 }
@@ -72,21 +86,27 @@ summarize_year <- function(df) {
 }
 
 ## Average distance by Contributor
+# Clean all data ZIP codes and select only necessary variables
+# Data will show McClain and Trone in one map and Thompson in another.
+MD_map_data <- df_filtered(all_data) %>% 
+  mutate(
+    contributor_zip = str_sub(contributor_zip, 1, 5),
+    contributor_zip = str_pad(contributor_zip, 5, pad = "0")) %>% 
+  select(
+    committee_id, committee_name, report_year, entity_type, entity_type_desc,
+    contributor_name, contributor_city, contributor_state, contributor_zip,
+    contributor_id, is_individual, contribution_receipt_amount) %>% 
+  filter(committee_name != "FRIENDS OF GLENN THOMPSON") %>% 
+  group_by(committee_name, contributor_name) %>% 
+  mutate(total = sum(contribution_receipt_amount, na.rm = TRUE)) %>% 
+  ungroup()
 
-# filter_city <- world.cities %>%
-#   filter(country.etc == "USA") %>%
-#   select(name, country.etc, lat, long) %>%
-#   rename(City = name, Country = country.etc) %>% 
-#   mutate(across(c(City, Country), toupper))
-#   
-# 
-# latlongTable <- trone_data %>% 
-#   mutate(contributor_city = toupper(contributor_city)) %>% 
-#   left_join(
-#     filter_city,
-#     by = c("contributor_city" = "City")
-#   )
-
+lat_long_tbl <- MD_map_data %>% 
+  left_join(
+    ZipGeography %>% select(ZIP, Latitude, Longitude),
+    by = c("contributor_zip" = "ZIP")
+  ) %>% 
+  filter(!is.na(Latitude))
 
 # Exploration -------------------------------------------------------------
 trone_fin_dist <- summarize_finances(trone_data) %>% mutate(candidate = "Trone")
