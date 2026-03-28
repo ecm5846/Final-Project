@@ -68,65 +68,44 @@ ggplot(all_state) +
 # State Contribution Map [WIP] ----------------------------------------------
 ## https://forum.posit.co/t/how-to-make-markers-have-different-colors-based-on-specific-variable-in-data-frame-using-leaflet-map/186922/3
 
-# DonationMap <-
-#   leaflet(lat_long_tbl) %>%
-#   addTiles() %>%
-#   addCircleMarkers(radius = 0.5, color = "red") %>%
-#   addMarkers(lng = -77.00, lat = 38.88, popup = "Delaney & Trone HQ") %>% 
-#   setView(-98.55, 39.80, zoom = 4) # middle of the US
-# DonationMap
+max_contributor <- lat_long_tbl %>% 
+  filter(contributor_name != "ACTBLUE") %>% 
+  group_by(committee_name, contributor_name) %>% 
+  summarise(
+    sum_val = sum(contribution_receipt_amount),
+    Latitude = mean(Latitude, na.rm = TRUE),
+    Longitude = mean(Longitude, na.rm = TRUE),
+    contributor_state = first(na.omit(contributor_state)),
+    contributor_city = first(na.omit(contributor_city)),
+    .groups = "drop"
+  ) %>% 
+  group_by(committee_name) %>% 
+  slice_max(sum_val, n = 5) %>% 
+  ungroup()
 
 DonationMap <-
   leaflet(lat_long_tbl) %>%
   addTiles() %>%
   addCircleMarkers(
+    lng = ~Longitude,
+    lat = ~Latitude,
     radius = 0.5,
     color = ~case_when(
       committee_name == "DAVID TRONE FOR CONGRESS" ~ "blue",
       committee_name == "APRIL MCCLAIN DELANEY FOR CONGRESS" ~ "red"
     )
   ) %>%
-  addMarkers(lng = -77.00, lat = 38.88, popup = "Delaney & Trone HQ") %>% 
+  addMarkers(
+    data = max_contributor,
+    lng = ~Longitude,
+    lat = ~Latitude,
+    popup = ~paste0(
+      "<b>TOP CONTRIBUTOR</b><br>",
+      "Contributor: ", contributor_name, "<br>",
+      "Contributor State: ", contributor_city, ", ", contributor_state, "<br>",
+      "Recipient : ", committee_name, "<br>",
+      "Total: $", comma(sum_val)
+    )
+  ) %>%
   setView(-98.55, 39.80, zoom = 4)
-
 DonationMap
-
-# Candidate Earnings by Year ----------------------------------------------
-
-## Identify maximum donation value
-max_callouts <- all_year %>% 
-  group_by(candidate) %>% 
-  slice_max(total, n = 1, with_ties = FALSE)
-max_callouts
-
-## Build base line plot
-base_plot <- 
-  ggplot(all_year) +
-  aes(
-    x = report_year,
-    y = total,
-    colour = candidate,
-    group = candidate
-  ) +
-  geom_line() +
-  ggtitle(label = "Financial Contribution by Year", subtitle = "All Time") + 
-  theme_bw()
-
-## Add call out values to max points
-max_values <- base_plot +
-  geom_segment(
-  data = max_callouts,
-  aes(
-    x = report_year - 5,
-    y = total,
-    xend = report_year - 0.5,
-    yend = total - 5000
-  )
-) +
-  geom_point(
-    data = max_callouts,
-    size = 3
-  ) 
-max_values
-    
-  

@@ -1,4 +1,4 @@
-rm(list = ls())
+rm(list = ls()) 
 # Call Libraries ----------------------------------------------------------
 
 library(tidyverse)
@@ -18,11 +18,8 @@ trone_data <- read_csv("Campaign Donations/MD/Trone/schedule_a-2026-03-17T18_57_
     committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
   )
 
-# PA Data Import
-thompson_data <- read_csv("Campaign Donations/PA/schedule_a-2026-03-17T18_59_04.csv")
-
 # Combine all data sets
-all_data <- rbind(delaney_data, trone_data, thompson_data) %>% 
+all_data <- rbind(delaney_data, trone_data) %>% 
   select(committee_id, committee_name, report_year, transaction_id, 
          file_number, entity_type, entity_type_desc, unused_contbr_id, 
          contributor_name, recipient_committee_designation, contributor_first_name, 
@@ -87,7 +84,6 @@ summarize_year <- function(df) {
 
 ## Average distance by Contributor
 # Clean all data ZIP codes and select only necessary variables
-# Data will show McClain and Trone in one map and Thompson in another.
 MD_map_data <- df_filtered(all_data) %>% 
   mutate(
     contributor_zip = str_sub(contributor_zip, 1, 5),
@@ -96,7 +92,6 @@ MD_map_data <- df_filtered(all_data) %>%
     committee_id, committee_name, report_year, entity_type, entity_type_desc,
     contributor_name, contributor_city, contributor_state, contributor_zip,
     contributor_id, is_individual, contribution_receipt_amount) %>% 
-  filter(committee_name != "FRIENDS OF GLENN THOMPSON") %>% 
   group_by(committee_name, contributor_name) %>% 
   mutate(total = sum(contribution_receipt_amount, na.rm = TRUE)) %>% 
   ungroup()
@@ -111,27 +106,23 @@ lat_long_tbl <- MD_map_data %>%
 # Exploration -------------------------------------------------------------
 trone_fin_dist <- summarize_finances(trone_data) %>% mutate(candidate = "Trone")
 delaney_fin_dist <- summarize_finances(delaney_data) %>% mutate(candidate = "Delaney")
-thompson_fin_dist <- summarize_finances(thompson_data) %>% mutate(candidate = "Thompson")
 all_fin_dist <- summarize_finances(all_data)
 
 trone_donor_dist <- summarize_donors(trone_data) %>% mutate(candidate = "Trone")
 delaney_donor_dist <- summarize_donors(delaney_data) %>% mutate(candidate = "Delaney")
-thompson_donor_dist <- summarize_donors(thompson_data) %>% mutate(candidate = "Thompson")
 all_donor_dist <- summarize_donors(all_data)
 
 trone_state_dist <- summarize_state(trone_data) %>% mutate(candidate = "Trone")
 delaney_state_dist <- summarize_state(delaney_data) %>% mutate(candidate = "Delaney")
-thompson_state_dist <- summarize_state(thompson_data) %>% mutate(candidate = "Thompson")
 all_state_dist <- summarize_state(all_data)
 
 trone_year_dist <- summarize_year(trone_data) %>% mutate(candidate = "Trone")
 delaney_year_dist <- summarize_year(delaney_data) %>% mutate(candidate = "Delaney")
-thompson_year_dist <- summarize_year(thompson_data) %>% mutate(candidate = "Thompson")
 all_year_dist <- summarize_year(all_data)
 
 ## Combine all data
-all_donors <- bind_rows(trone_donor_dist, delaney_donor_dist, thompson_donor_dist)
-all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist, thompson_fin_dist)
-all_state <- bind_rows(trone_state_dist, delaney_state_dist, thompson_state_dist)
-all_year <- bind_rows(trone_year_dist, delaney_year_dist, thompson_year_dist)
+all_donors <- bind_rows(trone_donor_dist, delaney_donor_dist)
+all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist)
+all_state <- bind_rows(trone_state_dist, delaney_state_dist)
+all_year <- bind_rows(trone_year_dist, delaney_year_dist)
 
