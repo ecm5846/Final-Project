@@ -13,10 +13,14 @@ library(dcData)
 # MD Data Import
 delaney_data <- read_csv("Campaign Donations/MD/Delaney/schedule_a-2026-03-17T18_54_17.csv")
 
+str(delaney_data)
+
 trone_data <- read_csv("Campaign Donations/MD/Trone/schedule_a-2026-03-17T18_57_57.csv") %>% 
   mutate(
     committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
   )
+
+str(trone_data)
 
 # Combine all data sets
 all_data <- rbind(delaney_data, trone_data) %>% 
@@ -32,23 +36,25 @@ all_data <- rbind(delaney_data, trone_data) %>%
          candidate_office_state, candidate_office_state_full, candidate_office_district, 
          conduit_committee_id, donor_committee_name, fec_election_year, two_year_transaction_period)
 
+str(all_data)
+
 # Cleaning and Standardizing -----------------------------------------------------
 ## Remove candidate contributions (loans etc...), reimbursements/refunds, and duplicate line items. 
 ## https://r4ds.hadley.nz/functions.html
 df_filtered <- function(df) {
   df %>%
     filter(
-      !entity_type_desc %in% c("CANDIDATE", "CAMPAIGN COMMITTEE", "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
+      !entity_type_desc %in% c("CANDIDATE", "CAMPAIGN COMMITTEE", 
+                               "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
       contribution_receipt_amount > 0,
-      report_year >= 2020
-    ) %>% 
-    distinct(transaction_id, .keep_all = TRUE)
+      report_year >= 2020,
+      contributor_name != "ACTBLUE" # Lines for PAC and accompanying line for associated individual donation
+    )
 }
 
 ## Find distribution of finances across type of donor, compute proportion to the total
 summarize_finances <- function(df) {
   df_filtered(df) %>% # apply the filter first
-    filter(report_year > 2020) %>% 
     group_by(entity_type_desc) %>%
     summarise(total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>%
     mutate(prop = round((total / sum(total))*100, 2)) %>%
@@ -58,7 +64,6 @@ summarize_finances <- function(df) {
 ## Find top n donors
 summarize_donors <- function(df) {
   df_filtered(df) %>% 
-    filter(report_year > 2020) %>% 
     group_by(contributor_name) %>% 
     summarise(total = sum(contribution_receipt_amount), .groups = "drop") %>% 
     slice_max(total, n = 10) %>% 
@@ -68,7 +73,6 @@ summarize_donors <- function(df) {
 ## Financial Contribution by State
 summarize_state <- function(df) {
   df_filtered(df) %>% 
-    filter(report_year > 2020) %>% 
     group_by(contributor_state) %>% 
     summarise(total = sum(contribution_receipt_amount), .groups = "drop") %>% 
     slice_max(total, n = 5) %>% 
@@ -101,7 +105,7 @@ lat_long_tbl <- MD_map_data %>%
     ZipGeography %>% select(ZIP, Latitude, Longitude),
     by = c("contributor_zip" = "ZIP")
   ) %>% 
-  filter(!is.na(Latitude))
+  filter(!is.na(Latitude)) # Remove around 100 lines where lat/long data isn't available.
 
 # Exploration -------------------------------------------------------------
 trone_fin_dist <- summarize_finances(trone_data) %>% mutate(candidate = "Trone")

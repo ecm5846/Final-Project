@@ -1,13 +1,9 @@
 # Load Packages -----------------------------------------------------------
-library(sf)
 library(terra)
 library(dplyr)
-library(tmap)
 library(ggspatial)
 library(ggplot2)
-library(maps)
 library(leaflet)
-library(prettymapr)
 # Campaign Contribution by Entity Type ------------------------------------
 ggplot(all_dist) + 
   aes(x = entity_type_desc, y = total, fill = candidate) +
@@ -67,9 +63,7 @@ ggplot(all_state) +
 
 # State Contribution Map [WIP] ----------------------------------------------
 ## https://forum.posit.co/t/how-to-make-markers-have-different-colors-based-on-specific-variable-in-data-frame-using-leaflet-map/186922/3
-
 max_contributor <- lat_long_tbl %>% 
-  filter(contributor_name != "ACTBLUE") %>% 
   group_by(committee_name, contributor_name) %>% 
   summarise(
     sum_val = sum(contribution_receipt_amount),
@@ -83,6 +77,14 @@ max_contributor <- lat_long_tbl %>%
   slice_max(sum_val, n = 5) %>% 
   ungroup()
 
+pal <- colorFactor(
+  palette = c("#7B1FA2", "#F28E2B"),
+  domain = c(
+    "DAVID TRONE FOR CONGRESS",
+    "APRIL MCCLAIN DELANEY FOR CONGRESS"
+  )
+)
+
 DonationMap <-
   leaflet(lat_long_tbl) %>%
   addTiles() %>%
@@ -90,10 +92,14 @@ DonationMap <-
     lng = ~Longitude,
     lat = ~Latitude,
     radius = 0.5,
-    color = ~case_when(
-      committee_name == "DAVID TRONE FOR CONGRESS" ~ "blue",
-      committee_name == "APRIL MCCLAIN DELANEY FOR CONGRESS" ~ "red"
-    )
+    color = ~pal(committee_name),
+    popup = ~paste0(
+      "<b>CONTRIBUTION</b><br>",
+      "Contributor: ", contributor_name, "<br>",
+      "Contributor State: ", contributor_city, ", ", contributor_state, "<br>",
+      "Recipient : ", committee_name, "<br>",
+      "Total: $", comma(total)
+      )
   ) %>%
   addMarkers(
     data = max_contributor,
@@ -107,5 +113,13 @@ DonationMap <-
       "Total: $", comma(sum_val)
     )
   ) %>%
-  setView(-98.55, 39.80, zoom = 4)
+  setView(-98.55, 39.80, zoom = 4) %>% 
+  
+  addLegend(
+    "topleft",
+    pal = pal,
+    values = ~committee_name,
+    title = "Committee",
+    opacity = 1
+  )
 DonationMap
