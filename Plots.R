@@ -34,7 +34,7 @@ ggplot(all_dist) +
 # Campaign Contribution by State ------------------------------------
 # https://r.geocompx.org/adv-map
 
-ggplot(all_state) + 
+cont_y_state <- ggplot(all_state) + 
   aes(x = candidate, y = total, fill = contributor_state) +
   geom_bar(position = "stack", stat = "identity") +
   
@@ -49,7 +49,7 @@ ggplot(all_state) +
     panel.grid.minor = element_blank(),
     plot.margin = margin(6, 8, 6, 8),
     axis.text.y = element_text(angle = 40, hjust = 1, vjust = 1),
-    legend.position = "bottom"
+    legend.position = "right"
   ) +
   
   scale_y_continuous(labels = dollar) +
@@ -57,7 +57,8 @@ ggplot(all_state) +
   labs(
     title = "Contribution Totals by State",
     x = NULL,
-    y = "Total Contributions"
+    y = "Total Contributions",
+    fill = "Contributor State"
   )
 
 
@@ -119,7 +120,7 @@ DonationMap <-
     "topleft",
     pal = pal,
     values = ~committee_name,
-    title = "Committee",
+    title = "Candidate",
     opacity = 1
   )
 DonationMap

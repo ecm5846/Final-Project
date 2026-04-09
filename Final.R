@@ -13,14 +13,11 @@ library(dcData)
 # MD Data Import
 delaney_data <- read_csv("Campaign Donations/MD/Delaney/schedule_a-2026-03-17T18_54_17.csv")
 
-str(delaney_data)
 
 trone_data <- read_csv("Campaign Donations/MD/Trone/schedule_a-2026-03-17T18_57_57.csv") %>% 
   mutate(
-    committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
-  )
+    committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS"))
 
-str(trone_data)
 
 # Combine all data sets
 all_data <- rbind(delaney_data, trone_data) %>% 
@@ -36,7 +33,6 @@ all_data <- rbind(delaney_data, trone_data) %>%
          candidate_office_state, candidate_office_state_full, candidate_office_district, 
          conduit_committee_id, donor_committee_name, fec_election_year, two_year_transaction_period)
 
-str(all_data)
 
 # Cleaning and Standardizing -----------------------------------------------------
 ## Remove candidate contributions (loans etc...), reimbursements/refunds, and duplicate line items. 
@@ -48,9 +44,10 @@ df_filtered <- function(df) {
                                "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
       contribution_receipt_amount > 0,
       report_year >= 2020,
-      contributor_name != "ACTBLUE" # Lines for PAC and accompanying line for associated individual donation
-    )
+      contributor_name != "ACTBLUE") # Lines for PAC and accompanying line for associated individual donation
 }
+
+
 
 ## Find distribution of finances across type of donor, compute proportion to the total
 summarize_finances <- function(df) {
@@ -129,4 +126,3 @@ all_donors <- bind_rows(trone_donor_dist, delaney_donor_dist)
 all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist)
 all_state <- bind_rows(trone_state_dist, delaney_state_dist)
 all_year <- bind_rows(trone_year_dist, delaney_year_dist)
-

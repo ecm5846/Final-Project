@@ -1,0 +1,89 @@
+---
+title: "Final Project Draft"
+subtitle: "Draft"
+author: "Ethan Miller"
+date: "08 April, 2026"
+output: 
+  html_notebook:
+    fig_height: 7
+    fig_width: 10
+---
+
+<body style="background-color:grey;">
+
+## Setup
+```{r include = FALSE}
+# clean up the RStudio environment 
+rm(list = ls())
+
+# Load packages: `tidyverse`, `lubridate` (if others are needed, load them here)
+library(lubridate)
+library(tidyverse)
+library(esquisse)
+library(dplyr)
+
+# Packages loaded for A.5 leaflet graphic
+library(devtools)
+library(leaflet)
+
+# Load data + objects
+source("Final.R")
+```
+
+```{r, include = FALSE}
+df_filtered <- function(df) {
+  df %>%
+    filter(
+      !entity_type_desc %in% c("CANDIDATE", "CAMPAIGN COMMITTEE", 
+                               "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
+      contribution_receipt_amount > 0,
+      report_year >= 2020,
+      contributor_name != "ACTBLUE") # Lines for PAC and accompanying line for associated individual donation
+}
+```
+
+
+# Where Are my Senators Getting Their Money?
+
+With the Primaries coming up in November, I decided to base my final project on campaign contributions of the two front runners for the 6th congressional district in Maryland. The two candidates I will be focusing on are David Trone, and the incumbent, April McClain Delaney.
+<br><br>
+Something about where the data came from and why it's credible.
+FEC.gov
+
+
+## Goals and Expected Outcomes
+
+Before stating goals and outcomes, I want to make it clear what this project *is not*. The information being compiled is not to make the case for one candidate or the other. There is much more to a political race than finances. That said, I do claim that to make the most informed decision possible, one must be familiar with who is supporting their candidate of choice. 
+
+### Goals:
+
+My goals are threefold. I want to analyze the distribution of donations to both candidates.
+
+```{r}
+summarize_finances <- function(df) {
+  df_filtered(df) %>% # apply the filter first
+    group_by(entity_type_desc) %>%
+    summarise(total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>%
+    mutate(prop = round((total / sum(total))*100, 2)) %>%
+    arrange(desc(total))
+}
+
+trone_fin_dist <- summarize_finances(trone_data) %>% mutate(candidate = "Trone")
+
+trone_fin_dist
+```
+
+```{r}
+delaney_fin_dist <- summarize_finances(delaney_data) %>% mutate(candidate = "Delaney")
+
+delaney_fin_dist
+```
+
+As we can see, both candidates have three campaign contributor types. The three contribution types are individuals, organizations, and political action committees. Notably, I've removed several contributors to better represent the information I am trying to communicate. I've chosen to remove any contributor that is directly associated with the campaign. This would be personal contributions from the candidate, a campaign committee, and political part committee. 
+
+### Expected Outcomes:
+
+At very first glance, the distribution of contributions shows us something interesting. Both Trone and Delaney receive the majority of their funding from individual donations. We'll see later whether those are small (less than $200) donations or not. This can set our expectations and inform what we want to learn. As mentioned, we'll see how much of the individual donations are coming from small donors. We'll also look at what organizations are contributing as well as what PACs.
+
+
+
