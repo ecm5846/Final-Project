@@ -11,13 +11,17 @@ library(dcData)
 # Initial data import -----------------------------------------------------
 
 # MD Data Import
-delaney_data <- read_csv("Campaign Donations/MD/Delaney/schedule_a-2026-03-17T18_54_17.csv")
+delaney_data <- read_csv(
+  here("Campaign Donations", "MD", "Delaney", "schedule_a-2026-03-17T18_54_17.csv")
+)
 
 
-trone_data <- read_csv("Campaign Donations/MD/Trone/schedule_a-2026-03-17T18_57_57.csv") %>% 
+trone_data <- read_csv(
+  here("Campaign Donations", "MD", "Trone", "schedule_a-2026-03-17T18_57_57.csv")
+) %>% 
   mutate(
-    committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS"))
-
+    committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
+  )
 
 # Combine all data sets
 all_data <- rbind(delaney_data, trone_data) %>% 

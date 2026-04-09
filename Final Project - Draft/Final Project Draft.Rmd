@@ -21,13 +21,16 @@ library(lubridate)
 library(tidyverse)
 library(esquisse)
 library(dplyr)
+library(here)
 
 # Packages loaded for A.5 leaflet graphic
 library(devtools)
 library(leaflet)
 
 # Load data + objects
-source("Final.R")
+
+
+source(here("Data and Plots", "Final.R"))
 ```
 
 ```{r, include = FALSE}
