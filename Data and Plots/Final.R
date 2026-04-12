@@ -7,6 +7,7 @@ library(scales)
 library(plotly)
 library(stringdist)
 library(dcData)
+library(here)
 
 # Initial data import -----------------------------------------------------
 
@@ -16,9 +17,10 @@ delaney_data <- read_csv(
 )
 
 
-trone_data <- read_csv(
+trone_data_raw <- read_csv(
   here("Campaign Donations", "MD", "Trone", "schedule_a-2026-03-17T18_57_57.csv")
-) %>% 
+)
+trone_data <- trone_data_raw %>% 
   mutate(
     committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
   )
@@ -130,3 +132,8 @@ all_donors <- bind_rows(trone_donor_dist, delaney_donor_dist)
 all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist)
 all_state <- bind_rows(trone_state_dist, delaney_state_dist)
 all_year <- bind_rows(trone_year_dist, delaney_year_dist)
+
+# Clarification -------------------------------------------------------------
+
+check <- trone_data %>% 
+  filter(entity_type_desc == "CANDIDATE") 
