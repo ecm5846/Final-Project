@@ -1,0 +1,848 @@
+Final Project Draft -GitHub Version
+================
+Ethan Miller
+April, 2026
+
+<h1 style="text-align: center;">
+
+Where Are my Representatives Getting Their Money?
+
+</h1>
+
+No matter your politics, voting is an essential part of a democratic
+society. It is our responsibility as individuals to participate in
+elections to make our voices heard and ensure the needs of our community
+are met. With this in mind, I decided to make my project about the
+campaign finances of the two front runners for the congressional
+elections in November in Maryland’s 6th district.
+
+The goal of this project is not to unpack the specific policies that
+these candidates will be running on, but to analyze where their funding
+is coming from that allows them to run for congress in the first place.
+The two candidates I will be focusing on are David Trone, and the
+incumbent, April McClain Delaney. At its core, this project asks a
+simple question: where does their money come from?
+
+## Why Finances Matter
+
+During election cycles, we’re inundated with ads, commercials, and
+rallies outlining what candidates say they’ll do if elected. We hear
+what they want to change and what they believe the current
+representative has gotten wrong. That messaging is an important part of
+any campaign, but it only tells part of the story.
+
+None of these promises happen without money. Campaigns are powered by
+funding, and where that money comes from matters. Candidates may
+self-finance, receive contributions from organizations or corporations,
+accept support from Political Action Committees, or rely on individual
+donors. Each of these sources, and the amounts they contribute, helps
+tell a deeper story about a campaign’s priorities, backing, and
+potential influence.
+
+## Where the Data Comes From
+
+All the data that I have accumulated for this project comes from
+[FEC.GOV](https://www.fec.gov). This website hosts the Federal Election
+Commission, an “independent regulatory agency charged with administering
+and enforcing the federal campaign finance law.” Part of this work
+consists of aggregating campaign contribution data and making it
+accessible to the public. This information is being updated in real
+time, but I pulled data on March 17th 2026.
+
+## What I Want to Learn
+
+My goal is understanding the financial side of these campaigns. I want
+to know how much each candidate contributes to their own campaign, who
+their donors are, where those donors are located, and how much they
+give. I’m also interested in the proportion of funding that comes from
+different types of donors, as well as mapping where contributors live to
+see whether out-of-state money plays a role.
+
+## Summary
+
+This project aims to answer a few key questions:
+
+- How much risk is a candidate taking upon themselves?
+
+- What proportion of funding comes from the different types of donors?
+
+- Who is donating to each campaign?
+
+- How much are they contributing?
+
+- Where are these donors located?
+
+## Preliminary Analysis
+
+As I said before, the data I’m using comes from the FEC. The structure
+of the data for both candidates is identical, and there are many
+variables that are not important to the analysis I will be doing.
+Because of this, I’ve created a data frame that combines both candidates
+data and removed all columns I found to be unnecessary.
+
+I would like to note, David Trone’s base data shows several committee
+names:
+
+``` r
+trone_data_raw %>% 
+  group_by(committee_name) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```
+
+    ## # A tibble: 4 × 2
+    ##   committee_name                 count
+    ##   <chr>                          <int>
+    ## 1 DAVID TRONE FOR MARYLAND        1532
+    ## 2 DAVID TRONE FOR CONGRESS        1392
+    ## 3 DAVID TRONE FOR CONGRESS, INC    456
+    ## 4 DAVID TRONE FOR MARYLAND, INC.    22
+
+Because of this, I’ve mutated the committee name to combine all
+different committees under one common name “David Trone fo Congress”.
+For the purposes of this project, differentiating between the various
+committees is unimportant.
+
+``` r
+# Combine all data sets
+all_data <- rbind(delaney_data, trone_data) %>% 
+  select(committee_id, committee_name, report_year, transaction_id, 
+         file_number, entity_type, entity_type_desc, unused_contbr_id, 
+         contributor_name, recipient_committee_designation, contributor_first_name, 
+         contributor_middle_name, contributor_last_name, contributor_suffix, 
+         contributor_street_1, contributor_street_2, contributor_city, 
+         contributor_state, contributor_zip, contributor_employer, contributor_occupation, 
+         contributor_id, is_individual, receipt_type_desc, memo_text, 
+         contribution_receipt_date, contribution_receipt_amount, contributor_aggregate_ytd, 
+         candidate_name, candidate_first_name, candidate_last_name, candidate_middle_name, 
+         candidate_office_state, candidate_office_state_full, candidate_office_district, 
+         conduit_committee_id, donor_committee_name, fec_election_year, two_year_transaction_period)
+sample_n(all_data, 10)
+```
+
+    ## # A tibble: 10 × 39
+    ##    committee_id committee_name            report_year transaction_id file_number
+    ##    <chr>        <chr>                           <dbl> <chr>                <dbl>
+    ##  1 C00653196    DAVID TRONE FOR CONGRESS         2022 6264302E           1641701
+    ##  2 C00854471    APRIL MCCLAIN DELANEY FO…        2024 5780734            1774998
+    ##  3 C00854471    APRIL MCCLAIN DELANEY FO…        2024 7170796            1856142
+    ##  4 C00653196    DAVID TRONE FOR CONGRESS         2023 7618685E           1699753
+    ##  5 C00854471    APRIL MCCLAIN DELANEY FO…        2024 7173742            1856142
+    ##  6 C00653196    DAVID TRONE FOR CONGRESS         2023 7641739E           1786247
+    ##  7 C00854471    APRIL MCCLAIN DELANEY FO…        2024 8587517            1856503
+    ##  8 C00653196    DAVID TRONE FOR CONGRESS         2022 5692389            1607374
+    ##  9 C00854471    APRIL MCCLAIN DELANEY FO…        2024 7544585            1856142
+    ## 10 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8PJDZG7        1241348
+    ## # ℹ 34 more variables: entity_type <chr>, entity_type_desc <chr>,
+    ## #   unused_contbr_id <chr>, contributor_name <chr>,
+    ## #   recipient_committee_designation <chr>, contributor_first_name <chr>,
+    ## #   contributor_middle_name <chr>, contributor_last_name <chr>,
+    ## #   contributor_suffix <chr>, contributor_street_1 <chr>,
+    ## #   contributor_street_2 <chr>, contributor_city <chr>,
+    ## #   contributor_state <chr>, contributor_zip <chr>, …
+
+As we scroll a random set of 10 rows of combined data, we can see that
+the variables are already coded as they should be.
+
+### Let us first see how long each candidate has been in politics:
+
+``` r
+minYear <- all_data %>% 
+  group_by(committee_name) %>% 
+  summarise(minYear = min(report_year))
+minYear
+```
+
+    ## # A tibble: 2 × 2
+    ##   committee_name                     minYear
+    ##   <chr>                                <dbl>
+    ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS    2023
+    ## 2 DAVID TRONE FOR CONGRESS              2016
+
+This shows us that Trone has been in politics for much longer than
+Delaney. This will be necessary to keep in mind when comparing financial
+data, as Trone has 7 years more data than Delaney.
+
+## Risk:
+
+What I want to know first is how much risk each candidate has taken by
+running for office. I want to know exactly how much each candidate has
+contributed to their own campaign.
+
+``` r
+ind_cont <- all_data %>% 
+  group_by(committee_name) %>% 
+  mutate(years_active = n_distinct(report_year)) %>% 
+  ungroup() %>% 
+  filter(entity_type_desc == "CANDIDATE") %>% 
+  group_by(committee_name, entity_type_desc) %>% 
+  summarise(
+    total = sum(contribution_receipt_amount),
+    years_active = max(years_active),
+    spend_per_year = total / years_active,
+    .groups = "drop"
+  )
+
+ind_cont
+```
+
+    ## # A tibble: 2 × 5
+    ##   committee_name             entity_type_desc  total years_active spend_per_year
+    ##   <chr>                      <chr>             <dbl>        <int>          <dbl>
+    ## 1 APRIL MCCLAIN DELANEY FOR… CANDIDATE        4.57e6            3       1524333.
+    ## 2 DAVID TRONE FOR CONGRESS   CANDIDATE        1.15e8           10      11481230.
+
+This data tells two different stories. Considering just the total spend
+per candidate, Trone has outspent Delaney by a wide margin. Considering
+time in office smooths that number out considerably.
+
+``` r
+## Plot to represent difference:
+ggplot(ind_cont) +
+  aes(x = committee_name, y = total/1000000, fill = committee_name) +
+  geom_col() +
+  labs(
+    x = "Candidate",
+    y = "Personal Contribtion (in Millions)",
+    title = "Personal Campaign Contributions",
+  ) +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 45L),
+        legend.position = "none")
+```
+
+![](Draft-GitHub_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+At first glance, the difference between 4.5 million from Delaney and a
+whopping 114 million dollars from Trone looks like Trone is taking on
+considerable risk. Taking a closer look at the context helps explain
+this disparity.
+
+David Trone is the co-founder of [Total
+Wine](https://www.forbes.com/sites/lizthach/2024/02/14/how-total-wine--more-became--largest-us-wine-retailer/),
+an alcohol retailer valued at roughly 2.4 billion dollars. Knowing this
+makes his self funding look less like risk and more like a strategic
+investment in policy outcomes that affect his industry.
+
+Maryland is one of four states in the country that does not allow beer
+and wine to be sold in grocery stores. The founder of the nation’s
+largest alcohol retailer has a clear stake in legislation that could
+reshape alcohol distribution. A voter has the right to know that their
+representative has a stake in an industry that may be impacted by
+changes in legislation.
+
+With that said, Delaney isn’t hurting for cash either. Her personal
+financial disclosure shows she has a substantial portfolio. The website
+[Quiver
+Quantitative](https://www.quiverquant.com/congresstrading/politician/April%20McClain%20Delaney-M001232/net-worth)
+estimates her net worth is just shy of 153 million dollars.
+
+## Conclusion
+
+Both Trone and Delaney are some of the wealthiest people in
+congressional politics. Given this fact, neither candidate has assumed
+considerable risk in their run for office. Both candidates have more
+than enough money to comfortably run for office.
+
+More importantly, this breakdown suggests the opposite of risk. Both
+candidates have a vested interest in driving legislation in a given
+direction.
+
+## What proportion of funding comes from the different types of donors?
+
+Now I’d like to see how much money each candidate receives from outside
+donations. Because we have already observed each candidates personal
+finances and contributions, we will be excluding any personal
+contributions from the candidate or their committee. To do this, I’ve
+written a custom function:
+
+``` r
+df_filtered <- function(df) {
+  df %>%
+    filter(
+      !entity_type_desc %in% c("CANDIDATE", "CAMPAIGN COMMITTEE", 
+                               "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
+      contribution_receipt_amount > 0,
+      report_year >= 2020,
+      contributor_name != "ACTBLUE",
+      !grepl("\\bRE", memo_text, ignore.case = TRUE))
+}
+```
+
+What this does is filter out any candidate contributions, either direct
+or through their campaign. This also excludes negative contributions
+(reimbursements or refunds) and sets the minimum year as 2020 to better
+represent current data. I’ve also excluded the contributor “ActBlue”. To
+my understanding, this is an organization that contributes to democratic
+campaigns. Each ActBlue contribution has a corresponding individual
+contribution in both candidates base data. Removing ActBlue essentially
+removes duplicate contributions.
+
+``` r
+summarize_finances <- function(df) {
+  df_filtered(df) %>% # apply the filter first
+    group_by(entity_type_desc) %>%
+    summarise(total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>%
+    mutate(prop = round((total / sum(total))*100, 2)) %>%
+    arrange(desc(total))
+}
+
+trone_fin_dist <- summarize_finances(trone_data) %>% mutate(candidate = "Trone")
+
+trone_fin_dist
+```
+
+    ## # A tibble: 3 × 4
+    ##   entity_type_desc              total  prop candidate
+    ##   <chr>                         <dbl> <dbl> <chr>    
+    ## 1 INDIVIDUAL                 1297781. 91.0  Trone    
+    ## 2 POLITICAL ACTION COMMITTEE  117588.  8.25 Trone    
+    ## 3 ORGANIZATION                 10554.  0.74 Trone
+
+``` r
+delaney_fin_dist <- summarize_finances(delaney_data) %>% mutate(candidate = "Delaney")
+
+delaney_fin_dist
+```
+
+    ## # A tibble: 3 × 4
+    ##   entity_type_desc              total  prop candidate
+    ##   <chr>                         <dbl> <dbl> <chr>    
+    ## 1 INDIVIDUAL                 1986346. 72.8  Delaney  
+    ## 2 POLITICAL ACTION COMMITTEE  727139. 26.6  Delaney  
+    ## 3 ORGANIZATION                 14985.  0.55 Delaney
+
+``` r
+all_dist <- bind_rows(trone_fin_dist, delaney_fin_dist)
+
+# Campaign Contribution by Entity Type ------------------------------------
+ggplot(all_dist) + 
+  aes(x = entity_type_desc, y = total, fill = candidate) +
+  geom_col(position = "dodge", stat = "identity") +
+  
+  geom_text(
+    aes(label = scales::comma(total)),
+    position = position_dodge(width = 0.9),
+    vjust = -0.3,
+    size = 3
+  ) +
+  
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(6, 8, 6, 8),
+    axis.text.y = element_text(angle = 40, hjust = 1, vjust = 1),
+    legend.position = "bottom"
+  ) +
+  
+  scale_y_continuous(labels = dollar) +
+  
+  labs(
+    title = "Contribution Totals by Entity Type",
+    x = NULL,
+    y = "Total Contributions"
+  ) +
+  theme_minimal()
+```
+
+![](Draft-GitHub_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+As shown above, both candidates receive contributions form three primary
+sources:
+
+- Individuals
+
+- Organizations
+
+- Political Action Committees (PACs)
+
+Now that the types of donors have been established, we can drill-down
+into each category to learn more.
+
+### Individuals
+
+A small individual donation is considered a contribution of less than
+\$200. What these small donations represent are ordinary people donating
+to a campaign. I’d like to observe the proportion of individual
+donations that can be considered small.
+
+``` r
+small_donations <- df_filtered(all_data) %>% 
+  filter(entity_type_desc == "INDIVIDUAL") %>% 
+  group_by(committee_name) %>% 
+  summarise(
+    total = sum(!is.na(contribution_receipt_amount)),
+    sd_count = sum(contribution_receipt_amount <= 200, na.rm = TRUE),
+    ld_count = sum(contribution_receipt_amount >= 201, na.rm = TRUE),
+    sd_prop = sd_count / total,
+    ld_prop = ld_count / total
+  )
+small_donations
+```
+
+    ## # A tibble: 2 × 6
+    ##   committee_name                     total sd_count ld_count sd_prop ld_prop
+    ##   <chr>                              <int>    <int>    <int>   <dbl>   <dbl>
+    ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS  1528      247     1281   0.162   0.838
+    ## 2 DAVID TRONE FOR CONGRESS            1385      394      991   0.284   0.716
+
+``` r
+stack_donations <- small_donations %>% 
+  select(committee_name, sd_prop, ld_prop) %>% 
+  pivot_longer(
+    cols = c(sd_prop, ld_prop),
+    names_to = "type",
+    values_to = "prop"
+  ) %>% 
+  mutate(type = recode(type,
+         sd_prop = "Small (≤200)",
+         ld_prop = "Large (>200)"),
+         committee_name = str_wrap(committee_name, width = 20))
+
+ggplot(stack_donations, aes(x = committee_name, y = prop, fill = type)) +
+  geom_col() +
+  geom_text(
+    aes(label = percent(prop, accuracy = 0.1)),
+    position = position_stack(vjust = 0.5),
+    size = 3
+  ) +
+  labs(
+    title = "Donation Proportion by Candidate",
+    x = NULL,
+    y = "Number of Donations",
+    fill = "Donation Size"
+  ) +
+  theme_minimal()
+```
+
+![](Draft-GitHub_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+The statistics continue to be unflattering for both candidates. Here we
+see that Trone and Delaney both receive the vast majority of their
+individual donations from large donors, greater than \$200.
+
+For the sake of argument, let’s look at donations greater than \$1000
+and see if the stats change:
+
+``` r
+med_donations <- df_filtered(all_data) %>% 
+  filter(entity_type_desc == "INDIVIDUAL") %>% 
+  group_by(committee_name) %>% 
+  summarise(
+    total = sum(!is.na(contribution_receipt_amount)),
+    sd_count = sum(contribution_receipt_amount <= 1000, na.rm = TRUE),
+    ld_count = sum(contribution_receipt_amount >= 1001, na.rm = TRUE),
+    sd_prop = sd_count / total,
+    ld_prop = ld_count / total
+  )
+med_donations
+```
+
+    ## # A tibble: 2 × 6
+    ##   committee_name                     total sd_count ld_count sd_prop ld_prop
+    ##   <chr>                              <int>    <int>    <int>   <dbl>   <dbl>
+    ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS  1528     1052      476   0.688   0.312
+    ## 2 DAVID TRONE FOR CONGRESS            1385     1061      324   0.766   0.234
+
+![](Draft-GitHub_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+Even after changing the small and large to over / under \$1000, both
+candidates have a quarter or more of their donations from very large
+individual donations.
+
+Most voters are not in a position to donate to campaigns, and giving
+more than \$1,000 is out of reach for many. These numbers show how much
+campaign funding depends on a relatively small group of high-dollar
+donors and how strongly those donors shape the political landscape.
+
+Speaking of high-dollar influence, who might be our max donors?
+
+``` r
+max_donors <- all_data %>% 
+  filter(entity_type_desc == "INDIVIDUAL") %>% 
+  mutate(amount = as.numeric(contribution_receipt_amount)) %>% 
+  group_by(committee_name, contributor_name) %>%
+  summarise(
+    total = sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  group_by(committee_name) %>% 
+  slice_max(total, n = 3, with_ties = FALSE) %>% 
+  ungroup()
+
+max_donors
+```
+
+    ## # A tibble: 6 × 3
+    ##   committee_name                     contributor_name total
+    ##   <chr>                              <chr>            <dbl>
+    ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS LENNON, DANIEL   16900
+    ## 2 APRIL MCCLAIN DELANEY FOR CONGRESS KARAM, MICHAEL   14900
+    ## 3 APRIL MCCLAIN DELANEY FOR CONGRESS ARCANO, ANNE     13600
+    ## 4 DAVID TRONE FOR CONGRESS           EPSTEIN, ROBERT  23000
+    ## 5 DAVID TRONE FOR CONGRESS           ABRAMSON, RONALD 20700
+    ## 6 DAVID TRONE FOR CONGRESS           WILSON, NEAL     20700
+
+Let us go down the list and see who these folks are,
+
+For Delaney:
+
+- [Daniel Lennon](https://www.lw.com/en/people/daniel-lennon) - former
+  Global Chair of the firm’s Corporate Department and former Washington,
+  D.C. Office Managing Partner, focused on corporate transactions.
+
+- [Michael Karam](https://www.linkedin.com/in/michael-karam-786bab10/) -
+  Georgetown University Alumni Association Board of Governors
+
+- [Anne
+  Arcano](https://nysba.org/justice-for-all-luncheon-2021/?srsltid=AfmBOorCagdPPql7SD_V7_k9YCrglykYTVEEqBjXqDiHzAaiqA3vXe0Q) -
+  Lawyer with a background in tax and family law.
+
+For Trone:
+
+- [Robert Epstein](https://www.umasshillel.org/speakers.html) No, not
+  that Epstein… President & Chief Executive Officer at Horizon Beverage,
+  a leading beverage company.
+
+- [Ronald Abramson](https://www.bipc.com/ronald-abramson) Serves on the
+  Board of Total Wine
+
+- [Neal Wilson](https://www.ejfcap.com/people/neal-wilson/) Co-Chief
+  Executive Officer & Co-Chief Investment Officer, EJF Capital
+
+It is important to recognize that these names are not random outliers.
+They are people with significant professional, financial, and social
+capital. The top donors to both campaigns are overwhelmingly drawn from
+executive leadership, corporate law, finance, and board-level positions.
+In other words, the individuals most capable of giving large sums are
+also those most embedded in institutions with a direct stake in public
+policy.
+
+### Organizations
+
+As we saw above, neither candidate received much at all from
+organizations. After filtering out refunds, each candidate is left with
+no more than \$15,000.
+
+Even still, understanding what organizations are giving money to their
+campaigns shows us a clearer picture of who the candidates claim to
+represent.
+
+``` r
+summarize_donors <- function(df) {
+  df_filtered(df) %>% 
+    filter(entity_type_desc == "ORGANIZATION") %>% 
+    group_by(contributor_name) %>% 
+    summarise(
+      total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>% 
+    slice_max(total, n = 5, with_ties = FALSE) %>% 
+    arrange(desc(total))
+}
+
+summarize_donors(trone_data)
+```
+
+    ## # A tibble: 5 × 2
+    ##   contributor_name                            total
+    ##   <chr>                                       <dbl>
+    ## 1 LAKEFRONT 17, LLC                           4806.
+    ## 2 THE ORENDA CENTER FOR WELLNESS LLC          2000 
+    ## 3 ACTBLUE TECHNICAL SERVICES                  1730 
+    ## 4 BLUE CROSS BLUE SHIELD                      1433.
+    ## 5 BERKSHIRE HATHAWAY DIRECT INSURANCE COMPANY  560.
+
+``` r
+summarize_donors(delaney_data)
+```
+
+    ## # A tibble: 4 × 2
+    ##   contributor_name              total
+    ##   <chr>                         <dbl>
+    ## 1 PERRY PARKWAY ASSOCIATES LP   7485.
+    ## 2 MARYLAND DEMOCRATIC PARTY     5250 
+    ## 3 GAMBRILL VIEW DEVELOPMENT LLC 2000 
+    ## 4 TAID LLC                       250
+
+While the contributions are relatively small, they tell an interesting
+story.
+
+For Trone:
+
+- [LAKEFRONT 17,
+  LLC](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.mapquest.com/us/maryland/lakefront-17-llc-553071264&ved=2ahUKEwj0iNjNqOiTAxUSkokEHYX1CcIQFnoECB4QAQ&usg=AOvVaw2l7O38c-yl3ZQ1thW6ngqM)
+  is a property management company based in Columbia, MD.
+
+- [THE ORENDA CENTER FOR WELLNESS
+  LLC](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://theorendacenter.com/&ved=2ahUKEwiT2sLlpeiTAxXphIkEHZ2JO8EQFnoECCgQAQ&usg=AOvVaw0flL0h41cVFfwjh320DBlp)
+  is a center for addiction treatment.
+
+- [BLUE CROSS BLUE SHIELD](https://www.bcbs.com) is an insurance
+  company.
+
+For Delaney:
+
+- PERRY PARKWAY ASSOCIATES LP does not appear to have an online presence
+  at all. The business has been registered, but it is unclear what it
+  does. It may be a property management company for hotels.
+
+- [GAMBRILL VIEW DEVELOPMENT LLC](https://gambrillviewfrederick.com) is
+  a property management company.
+
+- [TAID LLC](https://www.taid.ai) is some sort of training or education
+  service that uses AI.
+
+Trone receiving money from the Orenda Center for Wellness tracks with
+his messaging on addiction. Delaney receiving money from property
+management companies and AI services gives insight to potential policy
+decisions she may make.
+
+Also, Delaney receiving a donation from the MD Democratic Party is very
+interesting. To me, this shows that establishment democrats are more
+confident in Delaney than they are Trone.
+
+Given that neither candidate received a considerable amount from any
+organization, we can’t reasonably draw any conclusions as to what
+interests they represent for businesses.
+
+### PACs
+
+[PACs (political action
+committees)](https://www.fec.gov/press/resources-journalists/political-action-committees-pacs/)
+essentially bridge the gap between corporations and individuals. They
+pool contributions from members or affiliated supporters and direct
+those funds toward candidates and causes that reflect their shared
+priorities.
+
+In doing so, PACs play a dual role: they advocate for specific policy
+positions while also channeling financial support to campaigns they view
+as aligned with those goals.
+
+Like the organization data, I want to know what PACs are donating and
+how much.
+
+``` r
+summarize_PAC <- function(df) {
+  df_filtered(df) %>% 
+    filter(entity_type_desc == "POLITICAL ACTION COMMITTEE") %>% 
+    group_by(contributor_name) %>% 
+    summarise(
+      total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>% 
+    slice_max(total, n = 5, with_ties = FALSE) %>% 
+    arrange(desc(total))
+}
+
+trone_PAC <- summarize_PAC(trone_data) %>% mutate(cand = "Trone")
+```
+
+``` r
+delaney_PAC <- summarize_PAC(delaney_data) %>% mutate(cand = "Delaney")
+```
+
+``` r
+allPAC <- bind_rows(trone_PAC, delaney_PAC) %>%
+  mutate(contributor_name = case_when(
+    grepl("ISRAEL", contributor_name, ignore.case = TRUE) ~ "AIPAC",
+    TRUE ~ contributor_name # I ran this without the abbreviation and it made creating the plot very difficult.
+  ))
+allPAC
+```
+
+    ## # A tibble: 10 × 3
+    ##    contributor_name                           total cand   
+    ##    <chr>                                      <dbl> <chr>  
+    ##  1 AIPAC                                    105600  Trone  
+    ##  2 SWING LEFT                                 5771. Trone  
+    ##  3 BROOKDALE SENIOR LIVING PAC                2000  Trone  
+    ##  4 PETE AGUILAR FOR CONGRESS                  2000  Trone  
+    ##  5 TRONE VICTORY FUND                         1288. Trone  
+    ##  6 AIPAC                                     95150  Delaney
+    ##  7 DEMOCRACY SUMMER 2026                     40750  Delaney
+    ##  8 NEW DEMOCRAT COALITION ACTION FUND        20300  Delaney
+    ##  9 AMERIPAC: THE FUND FOR A GREATER AMERICA  19900  Delaney
+    ## 10 ELECT DEMOCRATIC WOMEN                    18500  Delaney
+
+``` r
+ggplot(allPAC, aes(x = cand, y = total, fill = contributor_name)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Candidate",
+    y = "Total (in dollars)",
+    title = "Distribution of PAC Contributions",
+    fill = "PAC"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 3)) +
+  scale_fill_discrete(labels = function(x) str_wrap(x, width = 25))
+```
+
+<img src="Draft-GitHub_files/figure-gfm/unnamed-chunk-21-1.png" alt="" width="100%" />
+
+Trone and Delaney both take a fair amount of money from PACs. As we can
+see, Delaney has a more even distribution than Trone, but that is mostly
+because she takes considerably more money from PACs in general. We saw
+earlier that Trone take around \$117,000 in PAC money while Delaney
+takes over \$720,000 in PAC money.
+
+Let’s look at these PACs and see what interests they represent
+
+For Trone:
+
+- [AIPAC](https://www.aipac.org) is an organization seemingly composed
+  to influence law makers to promote the relationship between the United
+  States and Israel.
+
+- [SWING LEFT](https://swingleft.org) is an organization that identifies
+  swing districts and tries to turn them blue.
+
+- [BROOKDALE SENIOR LIVING
+  PAC](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.brookdale.com/en.html&ved=2ahUKEwijy6_VuOiTAxWWjIkEHeL-DIwQFnoECB8QAQ&usg=AOvVaw2JQRB2K7-XFynqtgfQIdOk)
+  seems to be an elder care provider that also advocates for seniors
+  politically.
+
+For Delaney:
+
+- [AIPAC](https://www.aipac.org) here again… directly from their website
+  “AIPAC brings together Democrats and Republicans to advance our shared
+  mission. Building bipartisan support for the U.S.-Israel relationship
+  is an American value we are proud to champion.”
+
+- [DEMOCRACY SUMMER 2026](https://jamieraskin.com/democracy-summer/) is
+  an organization that introduces new democratic leaders to politics.
+
+- [AMERIPAC: THE FUND FOR A GREATER
+  AMERICA](https://www.ameripacfund.com/ameripac-fund-greater-america)
+  is an organization that helps democrats get elected to congress.
+
+These organizations and their contributions show us a major part of each
+candidate’s financial support. Delaney receives funding from several
+PACs that focus on elevating new voices within the Democratic Party.
+Trone, meanwhile, is supported by groups that advocate for issues
+affecting older Americans.
+
+However, for both candidates, the largest share of PAC funding comes
+from AIPAC. This stands out given the organization’s stated mission:
+“Building bipartisan support for the U.S.-Israel relationship is an
+American value we are proud to champion.”
+
+Taken together, this suggests that while each candidate draws support
+from issue-specific groups, both are ultimately reliant on the same
+dominant national political donor network.
+
+## Conclusion
+
+Whether funding comes from individuals, organizations, or PACs,
+understanding who representatives are responsive to requires close
+attention to their financial support
+
+For both Trone and Delaney, we see a similar pattern. Some of the
+wealthiest individuals in all of congress receive the majority of their
+individual donations from large donations, and they both get a
+considerable amount of money from the same PAC.
+
+This similarity puts voters in a difficult position. Neither candidate
+appears to be primarily funded by the people they claim to represent. As
+a result, it becomes harder to evaluate their policy positions and to
+vote with confidence that a candidate’s priorities align with your own
+interests.
+
+## Work in Progress
+
+Below is a part of this project that I want to add, but I need to flesh
+it out more. The goal here is to display where the donors are and to see
+if out-of-state donors influence policy.
+
+``` r
+## Average distance by Contributor
+# Clean all data ZIP codes and select only necessary variables
+MD_map_data <- df_filtered(all_data) %>% 
+  mutate(
+    contributor_zip = str_sub(contributor_zip, 1, 5),
+    contributor_zip = str_pad(contributor_zip, 5, pad = "0")) %>% 
+  select(
+    committee_id, committee_name, report_year, entity_type, entity_type_desc,
+    contributor_name, contributor_city, contributor_state, contributor_zip,
+    contributor_id, is_individual, contribution_receipt_amount) %>% 
+  group_by(committee_name, contributor_name) %>% 
+  mutate(total = sum(contribution_receipt_amount, na.rm = TRUE)) %>% 
+  ungroup()
+
+lat_long_tbl <- MD_map_data %>% 
+  left_join(
+    ZipGeography %>% select(ZIP, Latitude, Longitude),
+    by = c("contributor_zip" = "ZIP")
+  ) %>% 
+  filter(!is.na(Latitude)) # Remove around 100 lines where lat/long data isn't available.
+```
+
+This cleans up the zip code column and also joins a lat/long table so I
+can plot the donors on a map.
+
+``` r
+# State Contribution Map [WIP] ----------------------------------------------
+## https://forum.posit.co/t/how-to-make-markers-have-different-colors-based-on-specific-variable-in-data-frame-using-leaflet-map/186922/3
+max_contributor <- lat_long_tbl %>% 
+  group_by(committee_name, contributor_name) %>% 
+  summarise(
+    sum_val = sum(contribution_receipt_amount),
+    Latitude = mean(Latitude, na.rm = TRUE),
+    Longitude = mean(Longitude, na.rm = TRUE),
+    contributor_state = first(na.omit(contributor_state)),
+    contributor_city = first(na.omit(contributor_city)),
+    .groups = "drop"
+  ) %>% 
+  group_by(committee_name) %>% 
+  slice_max(sum_val, n = 5) %>% 
+  ungroup()
+
+pal <- colorFactor(
+  palette = c("#7B1FA2", "#F28E2B"),
+  domain = c(
+    "DAVID TRONE FOR CONGRESS",
+    "APRIL MCCLAIN DELANEY FOR CONGRESS"
+  )
+)
+
+DonationMap <-
+  leaflet(lat_long_tbl) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = ~Longitude,
+    lat = ~Latitude,
+    radius = 0.5,
+    color = ~pal(committee_name),
+    popup = ~paste0(
+      "<b>CONTRIBUTION</b><br>",
+      "Contributor: ", contributor_name, "<br>",
+      "Contributor State: ", contributor_city, ", ", contributor_state, "<br>",
+      "Recipient : ", committee_name, "<br>",
+      "Total: $", comma(total)
+      )
+  ) %>%
+  addMarkers(
+    data = max_contributor,
+    lng = ~Longitude,
+    lat = ~Latitude,
+    popup = ~paste0(
+      "<b>TOP CONTRIBUTOR</b><br>",
+      "Contributor: ", contributor_name, "<br>",
+      "Contributor State: ", contributor_city, ", ", contributor_state, "<br>",
+      "Recipient : ", committee_name, "<br>",
+      "Total: $", comma(sum_val)
+    )
+  ) %>%
+  setView(-98.55, 39.80, zoom = 4) %>% 
+  
+  addLegend(
+    "topleft",
+    pal = pal,
+    values = ~committee_name,
+    title = "Candidate",
+    opacity = 1
+  )
+DonationMap
+```
+
+![](Draft-GitHub_files/figure-gfm/unnamed-chunk-23-1.png)<!-- --> This
+works in the RMD, but I can’t get it to render properly and keep the
+nd.html file like I need to.

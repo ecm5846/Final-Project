@@ -50,7 +50,8 @@ df_filtered <- function(df) {
                                "POLITICAL PARTY COMMITTEE", "OTHER COMMITTEE"),
       contribution_receipt_amount > 0,
       report_year >= 2020,
-      contributor_name != "ACTBLUE") # Lines for PAC and accompanying line for associated individual donation
+      contributor_name != "ACTBLUE",
+      !grepl("^RE", memo_text, ignore.case = TRUE) | is.na(memo_text))
 }
 
 
