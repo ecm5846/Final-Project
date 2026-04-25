@@ -1,15 +1,13 @@
 ---
-title: "Campaign Finances: Who, what, where, when, and why?"
+title: "Final Project - GitHub Version"
 subtitle: "Final"
 author: "Ethan Miller"
-date: "03 May, 2026"
-output: 
-  html_notebook:
-    fig_height: 7
-    fig_width: 10
+date: "May 03, 2026"
+output: github_document
 ---
 
 ```{r include = FALSE}
+rm(list = ls())
 library(lubridate)
 library(tidyverse)
 library(esquisse)
@@ -22,40 +20,7 @@ library(leaflet)
 
 # Load data + objects
 
-
 source(here("Data and Plots", "Final.R"))
-```
-
-```{r include = FALSE}
-## Just in case:
-# Initial data import -----------------------------------------------------
-# # MD Data Import
-# delaney_data <- read_csv(
-#   here("Campaign Donations", "MD", "Delaney", "schedule_a-2026-03-17T18_54_17.csv")
-# )
-# 
-# 
-# trone_data_raw <- read_csv(
-#   here("Campaign Donations", "MD", "Trone", "schedule_a-2026-03-17T18_57_57.csv")
-# )
-# trone_data <- trone_data_raw %>%
-#   mutate(
-#     committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
-#   )
-# 
-# # Combine all data sets
-# all_data <- rbind(delaney_data, trone_data) %>%
-#   select(committee_id, committee_name, report_year, transaction_id,
-#          file_number, entity_type, entity_type_desc, unused_contbr_id,
-#          contributor_name, recipient_committee_designation, contributor_first_name,
-#          contributor_middle_name, contributor_last_name, contributor_suffix,
-#          contributor_street_1, contributor_street_2, contributor_city,
-#          contributor_state, contributor_zip, contributor_employer, contributor_occupation,
-#          contributor_id, is_individual, receipt_type_desc, memo_text,
-#          contribution_receipt_date, contribution_receipt_amount, contributor_aggregate_ytd,
-#          candidate_name, candidate_first_name, candidate_last_name, candidate_middle_name,
-#          candidate_office_state, candidate_office_state_full, candidate_office_district,
-#          conduit_committee_id, donor_committee_name, fec_election_year, two_year_transaction_period)
 ```
 
 </br>
@@ -723,8 +688,8 @@ This required a lot of different things to connect and work, including a little 
 ## https://forum.posit.co/t/how-to-make-markers-have-different-colors-based-on-specific-variable-in-data-frame-using-leaflet-map/186922/3
 
 
-# max_contributor <- lat_long_tbl %>% 
-#   group_by(committee_name, contributor_name) %>% 
+# max_contributor <- lat_long_tbl %>%
+#   group_by(committee_name, contributor_name) %>%
 #   summarise(
 #     sum_val = sum(contribution_receipt_amount),
 #     Latitude = mean(Latitude, na.rm = TRUE),
@@ -732,9 +697,9 @@ This required a lot of different things to connect and work, including a little 
 #     contributor_state = first(na.omit(contributor_state)),
 #     contributor_city = first(na.omit(contributor_city)),
 #     .groups = "drop"
-#   ) %>% 
-#   group_by(committee_name) %>% 
-#   slice_max(sum_val, n = 5) %>% 
+#   ) %>%
+#   group_by(committee_name) %>%
+#   slice_max(sum_val, n = 5) %>%
 #   ungroup()
 # 
 # pal <- colorFactor(
@@ -773,8 +738,8 @@ This required a lot of different things to connect and work, including a little 
 #       "Total: $", comma(sum_val)
 #     )
 #   ) %>%
-#   setView(-98.55, 39.80, zoom = 4) %>% 
-#   
+#   setView(-98.55, 39.80, zoom = 4) %>%
+# 
 #   addLegend(
 #     "topleft",
 #     pal = pal,
@@ -782,7 +747,5 @@ This required a lot of different things to connect and work, including a little 
 #     title = "Candidate",
 #     opacity = 1
 #   )
-
+# DonationMap
 ```
-
-In one of the markers, we see someone from Nevada donating \$15,000 to Trone's campaign. Turns out, that person is the CEO of a defense company named "Sierra Nevada Corporation"... spooky!

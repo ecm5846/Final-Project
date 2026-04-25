@@ -52,7 +52,7 @@ df_filtered <- function(df) {
       contribution_receipt_amount > 0,
       report_year >= 2020,
       contributor_name != "ACTBLUE",
-      !grepl("^RE", memo_text, ignore.case = TRUE) | is.na(memo_text))
+      !grepl("\\bREFUND\\b", memo_text, ignore.case = TRUE))
 }
 
 
@@ -178,12 +178,15 @@ lat_long_tbl <- MD_map_data %>%
   )
 
 
+Filtered_max_donors <- df_filtered(all_data) %>% 
+  filter(entity_type_desc == "INDIVIDUAL") %>% 
+  group_by(committee_name, contributor_name) %>%
+  summarise(
+    total = sum(contribution_receipt_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  group_by(committee_name) %>% 
+  slice_max(total, n = 3, with_ties = FALSE) %>% 
+  ungroup()
 
-  
-  
-  
-
-
-
-
-
+Filtered_max_donors
