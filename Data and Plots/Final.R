@@ -8,6 +8,7 @@ library(plotly)
 library(stringdist)
 library(dcData)
 library(here)
+library(geosphere)
 
 # Initial data import -----------------------------------------------------
 
@@ -104,12 +105,34 @@ MD_map_data <- df_filtered(all_data) %>%
   mutate(total = sum(contribution_receipt_amount, na.rm = TRUE)) %>% 
   ungroup()
 
-lat_long_tbl <- MD_map_data %>% 
+fred_lat <- 39.4143
+fred_long <- -77.4105
+
+lat_long_tbl <- MD_map_data %>%
+  filter(contributor_name != "CANAL PARTNERS MEDIA") %>% 
   left_join(
     ZipGeography %>% select(ZIP, Latitude, Longitude),
     by = c("contributor_zip" = "ZIP")
   ) %>% 
-  filter(!is.na(Latitude)) # Remove around 100 lines where lat/long data isn't available.
+  filter(!is.na(Latitude)) %>% # Remove around 100 lines where lat/long data isn't available.
+  mutate(distance = distm( # https://stackoverflow.com/questions/32363998/function-to-calculate-geospatial-distance-between-two-points-lat-long-using-r
+    x = cbind(Longitude, Latitude),
+    y = c(fred_long, fred_lat),
+    fun = distHaversine
+  )[,1] * 0.000621371)
+
+lat_long_tbl %>%
+  ggplot(aes(x = distance, y = contribution_receipt_amount)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  scale_y_log10() + # Otherwise huge outliers will skew data
+  facet_wrap(~ committee_name) +
+  labs(
+    x = "Distance (miles)",
+    y = "Contribution Amount (log scale)",
+    title = "Does Distance Affect Contribution Size"
+  ) +
+  theme_minimal()
 
 # Exploration -------------------------------------------------------------
 trone_fin_dist <- summarize_finances(trone_data) %>% mutate(candidate = "Trone")
@@ -138,3 +161,29 @@ all_year <- bind_rows(trone_year_dist, delaney_year_dist)
 
 check <- trone_data %>% 
   filter(entity_type_desc == "CANDIDATE") 
+
+all_data %>% 
+  ggplot(aes(x = 1, y = contribution_receipt_amount, color = committee_name)) +
+  geom_point(alpha = 0.2, position = "jitter") +
+  scale_y_continuous(limits = c(0, 1000)) +
+  xlab("Weight (kg)") +
+  ylab("") +
+  theme_bw()
+
+lat_long_tbl <- MD_map_data %>%
+  #filter(contributor_name != "CANAL PARTNERS MEDIA") %>% 
+  left_join(
+    ZipGeography %>% select(ZIP, Latitude, Longitude),
+    by = c("contributor_zip" = "ZIP")
+  )
+
+
+
+  
+  
+  
+
+
+
+
+
