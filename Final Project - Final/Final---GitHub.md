@@ -3,13 +3,7 @@ Final Project - GitHub Version
 Ethan Miller
 May 03, 2026
 
-</br>
-
-<h1 style="text-align: center;">
-
-Where Are my Representatives Getting Their Money?
-
-</h1>
+# Where Are My Representatives Getting Their Money?
 
 No matter your politics, voting is an essential part of a democratic
 society. It is our responsibility as individuals to participate in
@@ -25,7 +19,7 @@ The two candidates I will be focusing on are the incumbent, April
 McClain Delaney, and her opponent, David Trone. At its core, this
 project asks a simple question: where does their money come from?
 
-## Why Finances Matter
+### Why Finances Matter
 
 During election cycles, we’re inundated with ads, commercials, and
 rallies outlining what candidates say they’ll do if elected. We hear
@@ -41,7 +35,7 @@ donors. Each of these sources, and the amounts they contribute, helps
 tell a story about a campaign’s priorities, backing, and potential
 influence.
 
-## Where the Data Comes From
+### Where the Data Comes From
 
 All the data that I have accumulated for this project comes from
 [FEC.GOV](https://www.fec.gov). This website hosts the Federal Election
@@ -51,7 +45,7 @@ consists of aggregating campaign contribution data and making it
 accessible to the public. This information is being updated in real
 time, but I pulled data on March 17th 2026.
 
-## What I Want to Learn
+### What I Want to Learn
 
 My goal is understanding the financial side of these campaigns. I want
 to know how much each candidate contributes to their own campaign, who
@@ -60,11 +54,11 @@ give. I’m also interested in the proportion of funding that comes from
 different types of donors, as well as mapping where contributors live to
 see whether out-of-state money plays a role.
 
-## Summary
+### Summary
 
 This project aims to answer a few key questions:
 
-- How much of the campaign is each candidate self-funding?
+- How much of their campaign is each candidate self-funding?
 
 - What proportion of funding comes from the different types of donors?
 
@@ -74,7 +68,294 @@ This project aims to answer a few key questions:
 
 - Where are these donors located?
 
-## Preliminary Analysis
+## Preliminary Analysis:
+
+Before I begin, I will import the data sets and inspect their various
+elements:
+
+``` r
+# Load in Delaney data, glimpse at variable structure.
+delaney_data <- read_csv(
+  here("Campaign Donations", "MD", "Delaney", "schedule_a-2026-03-17T18_54_17.csv")
+)
+```
+
+    ## Warning: One or more parsing issues, call `problems()` on your data frame for details,
+    ## e.g.:
+    ##   dat <- vroom(...)
+    ##   problems(dat)
+
+    ## Rows: 3254 Columns: 78
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (47): committee_id, committee_name, report_type, filing_form, line_numb...
+    ## dbl  (11): report_year, image_number, link_id, transaction_id, file_number, ...
+    ## lgl  (18): contributor_prefix, recipient_committee_org_type, contributor_suf...
+    ## dttm  (2): contribution_receipt_date, load_date
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+glimpse(delaney_data)
+```
+
+    ## Rows: 3,254
+    ## Columns: 78
+    ## $ committee_id                          <chr> "C00854471", "C00854471", "C0085…
+    ## $ committee_name                        <chr> "APRIL MCCLAIN DELANEY FOR CONGR…
+    ## $ report_year                           <dbl> 2024, 2024, 2024, 2024, 2024, 20…
+    ## $ report_type                           <chr> "12P", "12P", "12G", "12G", "Q3"…
+    ## $ image_number                          <dbl> 2.024063e+17, 2.024063e+17, 2.02…
+    ## $ filing_form                           <chr> "F3", "F3", "F3", "F3", "F3", "F…
+    ## $ link_id                               <dbl> 4.06292e+18, 4.06292e+18, 4.1205…
+    ## $ line_number                           <chr> "11AI", "11AI", "11AI", "11AI", …
+    ## $ transaction_id                        <dbl> 5847289, 5847288, 8168998, 81790…
+    ## $ file_number                           <dbl> 1792699, 1792699, 1856230, 18562…
+    ## $ entity_type                           <chr> "IND", "IND", "IND", "IND", "IND…
+    ## $ entity_type_desc                      <chr> "INDIVIDUAL", "INDIVIDUAL", "IND…
+    ## $ unused_contbr_id                      <chr> "C00401224", "C00401224", NA, NA…
+    ## $ contributor_prefix                    <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ contributor_name                      <chr> "CLARE, TERESA", "CLARE, TERESA"…
+    ## $ recipient_committee_type              <chr> "H", "H", "H", "H", "H", "H", "H…
+    ## $ recipient_committee_org_type          <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ recipient_committee_designation       <chr> "P", "P", "P", "P", "P", "P", "P…
+    ## $ contributor_first_name                <chr> "TERESA", "TERESA", "PHILIP", "P…
+    ## $ contributor_middle_name               <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ contributor_last_name                 <chr> "CLARE", "CLARE", "INGLIMA", "CO…
+    ## $ contributor_suffix                    <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ contributor_street_1                  <chr> "4400 W ST NW", "4400 W ST NW", …
+    ## $ contributor_street_2                  <chr> NA, NA, NA, NA, "STE 203", "APT …
+    ## $ contributor_city                      <chr> "WASHINGTON", "WASHINGTON", "WAS…
+    ## $ contributor_state                     <chr> "DC", "DC", "DC", "MD", "MD", "M…
+    ## $ contributor_zip                       <chr> "200071100", "200071100", "20015…
+    ## $ contributor_employer                  <chr> "GEORGETOWN UNIVERSITY", "GEORGE…
+    ## $ contributor_occupation                <chr> "ADJUNCT PROFESSOR", "ADJUNCT PR…
+    ## $ contributor_id                        <chr> "C00401224", "C00401224", NA, NA…
+    ## $ is_individual                         <lgl> TRUE, TRUE, TRUE, TRUE, TRUE, TR…
+    ## $ receipt_type                          <chr> "15E", "15E", "15", "15", "15", …
+    ## $ receipt_type_desc                     <chr> "EARMARKED CONTRIBUTION", "EARMA…
+    ## $ receipt_type_full                     <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ memo_code                             <chr> "X", "X", "X", "X", "X", "X", "X…
+    ## $ memo_code_full                        <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ memo_text                             <chr> "* AMOUNT REATTRIBUTED TO SPOUSE…
+    ## $ contribution_receipt_date             <dttm> 2024-04-08, 2024-04-08, 2024-10…
+    ## $ contribution_receipt_amount           <dbl> -3300.00, -3300.00, -3000.00, -1…
+    ## $ contributor_aggregate_ytd             <dbl> 6600.00, 6600.00, 5800.00, 3300.…
+    ## $ candidate_id                          <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_name                        <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_first_name                  <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_last_name                   <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_middle_name                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_prefix                      <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_suffix                      <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office                      <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_full                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_state                <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_state_full           <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_district             <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_id                  <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_name                <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_street1             <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_street2             <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_city                <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_state               <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_zip                 <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ donor_committee_name                  <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ national_committee_nonfederal_account <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ election_type                         <chr> "G2024", "P2024", "G2024", "G202…
+    ## $ election_type_full                    <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ fec_election_type_desc                <chr> "GENERAL", "PRIMARY", "GENERAL",…
+    ## $ fec_election_year                     <dbl> 2024, 2024, 2024, 2024, 2024, 20…
+    ## $ two_year_transaction_period           <dbl> 2024, 2024, 2024, 2024, 2024, 20…
+    ## $ amendment_indicator                   <chr> "N", "N", "N", "N", "N", "N", "N…
+    ## $ amendment_indicator_desc              <chr> "NO CHANGE", "NO CHANGE", "NO CH…
+    ## $ schedule_type                         <chr> "SA", "SA", "SA", "SA", "SA", "S…
+    ## $ schedule_type_full                    <chr> "ITEMIZED RECEIPTS", "ITEMIZED R…
+    ## $ increased_limit                       <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ load_date                             <dttm> 2024-06-30 04:06:16, 2024-06-30…
+    ## $ sub_id                                <dbl> 4.06292e+18, 4.06292e+18, 4.0106…
+    ## $ original_sub_id                       <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ back_reference_transaction_id         <dbl> NA, NA, NA, NA, NA, NA, NA, 8151…
+    ## $ back_reference_schedule_name          <chr> NA, NA, NA, NA, NA, NA, NA, "SA1…
+    ## $ pdf_url                               <chr> "https://docquery.fec.gov/cgi-bi…
+    ## $ line_number_label                     <chr> "Contributions From Individuals/…
+
+``` r
+# Pull summary data from donations variable.
+summary(delaney_data$contribution_receipt_amount)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   -3500     250    1000    2764    2500  825000
+
+``` r
+# Examine first 10 rows of data.
+head(delaney_data, 10)
+```
+
+    ## # A tibble: 10 × 78
+    ##    committee_id committee_name  report_year report_type image_number filing_form
+    ##    <chr>        <chr>                 <dbl> <chr>              <dbl> <chr>      
+    ##  1 C00854471    APRIL MCCLAIN …        2024 12P              2.02e17 F3         
+    ##  2 C00854471    APRIL MCCLAIN …        2024 12P              2.02e17 F3         
+    ##  3 C00854471    APRIL MCCLAIN …        2024 12G              2.02e17 F3         
+    ##  4 C00854471    APRIL MCCLAIN …        2024 12G              2.02e17 F3         
+    ##  5 C00854471    APRIL MCCLAIN …        2024 Q3               2.02e17 F3         
+    ##  6 C00854471    APRIL MCCLAIN …        2024 Q3               2.02e17 F3         
+    ##  7 C00854471    APRIL MCCLAIN …        2024 Q3               2.02e17 F3         
+    ##  8 C00854471    APRIL MCCLAIN …        2024 30G              2.02e17 F3         
+    ##  9 C00854471    APRIL MCCLAIN …        2024 30G              2.02e17 F3         
+    ## 10 C00854471    APRIL MCCLAIN …        2024 Q3               2.02e17 F3         
+    ## # ℹ 72 more variables: link_id <dbl>, line_number <chr>, transaction_id <dbl>,
+    ## #   file_number <dbl>, entity_type <chr>, entity_type_desc <chr>,
+    ## #   unused_contbr_id <chr>, contributor_prefix <lgl>, contributor_name <chr>,
+    ## #   recipient_committee_type <chr>, recipient_committee_org_type <lgl>,
+    ## #   recipient_committee_designation <chr>, contributor_first_name <chr>,
+    ## #   contributor_middle_name <chr>, contributor_last_name <chr>,
+    ## #   contributor_suffix <lgl>, contributor_street_1 <chr>, …
+
+``` r
+# Load in Trone data, glimpse at variable structure.
+trone_data_raw <- read_csv(
+  here("Campaign Donations", "MD", "Trone", "schedule_a-2026-03-17T18_57_57.csv")
+)
+```
+
+    ## Warning: One or more parsing issues, call `problems()` on your data frame for details,
+    ## e.g.:
+    ##   dat <- vroom(...)
+    ##   problems(dat)
+
+    ## Rows: 3402 Columns: 78
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (49): committee_id, committee_name, report_type, filing_form, line_numb...
+    ## dbl   (9): report_year, image_number, link_id, file_number, contribution_rec...
+    ## lgl  (18): contributor_prefix, recipient_committee_org_type, is_individual, ...
+    ## dttm  (2): contribution_receipt_date, load_date
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+glimpse(trone_data_raw)
+```
+
+    ## Rows: 3,402
+    ## Columns: 78
+    ## $ committee_id                          <chr> "C00653196", "C00653196", "C0065…
+    ## $ committee_name                        <chr> "DAVID TRONE FOR CONGRESS", "DAV…
+    ## $ report_year                           <dbl> 2022, 2020, 2020, 2019, 2019, 20…
+    ## $ report_type                           <chr> "12G", "Q3", "Q3", "Q2", "YE", "…
+    ## $ image_number                          <dbl> 2.022113e+17, 2.020102e+17, 2.02…
+    ## $ filing_form                           <chr> "F3", "F3", "F3", "F3", "F3", "F…
+    ## $ link_id                               <dbl> 4.11302e+18, 4.10162e+18, 4.1016…
+    ## $ line_number                           <chr> "11AI", "11AI", "11AI", "11AI", …
+    ## $ transaction_id                        <chr> "7147842", "2290263", "2290263E"…
+    ## $ file_number                           <dbl> 1663379, 1449953, 1449953, 14377…
+    ## $ entity_type                           <chr> "IND", "IND", "PAC", "IND", "IND…
+    ## $ entity_type_desc                      <chr> "INDIVIDUAL", "INDIVIDUAL", "POL…
+    ## $ unused_contbr_id                      <chr> "C00401224", NA, "C00401224", NA…
+    ## $ contributor_prefix                    <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ contributor_name                      <chr> "FEIGON, SHARON", "SCHIFTER, RCH…
+    ## $ recipient_committee_type              <chr> "H", "H", "H", "H", "H", "H", "H…
+    ## $ recipient_committee_org_type          <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ recipient_committee_designation       <chr> "P", "P", "P", "P", "P", "P", "P…
+    ## $ contributor_first_name                <chr> "SHARON", "RCHARD", NA, "ALAIN",…
+    ## $ contributor_middle_name               <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ contributor_last_name                 <chr> "FEIGON", "SCHIFTER", NA, "BARBE…
+    ## $ contributor_suffix                    <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ contributor_street_1                  <chr> "711 ROSLYN TER", "6907 CRAIL DR…
+    ## $ contributor_street_2                  <chr> NA, NA, NA, NA, NA, NA, "UNIT 3B…
+    ## $ contributor_city                      <chr> "EVANSTON", "BETHESDA", "WEST SO…
+    ## $ contributor_state                     <chr> "IL", "MD", "MA", "NJ", "MD", "M…
+    ## $ contributor_zip                       <chr> "602011721", "208174723", "02144…
+    ## $ contributor_employer                  <chr> "SHARD USE MOBILITY CENTER", "NO…
+    ## $ contributor_occupation                <chr> "EXECUTIVE DIRECTOR", "NOT EMPLO…
+    ## $ contributor_id                        <chr> "C00401224", NA, "C00401224", NA…
+    ## $ is_individual                         <lgl> TRUE, TRUE, FALSE, TRUE, TRUE, F…
+    ## $ receipt_type                          <chr> "15E", NA, NA, "15", "15E", NA, …
+    ## $ receipt_type_desc                     <chr> "EARMARKED CONTRIBUTION", NA, NA…
+    ## $ receipt_type_full                     <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ memo_code                             <chr> NA, NA, "X", NA, NA, "X", NA, "X…
+    ## $ memo_code_full                        <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ memo_text                             <chr> "* EARMARKED CONTRIBUTION: SEE B…
+    ## $ contribution_receipt_date             <dttm> 2022-10-18, 2020-08-18, 2020-08…
+    ## $ contribution_receipt_amount           <dbl> 8.62, 15.00, 15.00, 20.00, 25.00…
+    ## $ contributor_aggregate_ytd             <dbl> 508.62, 15.00, 40709.90, 1020.00…
+    ## $ candidate_id                          <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_name                        <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_first_name                  <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_last_name                   <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_middle_name                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_prefix                      <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_suffix                      <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office                      <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_full                 <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_state                <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_state_full           <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ candidate_office_district             <chr> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_id                  <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_name                <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_street1             <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_street2             <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_city                <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_state               <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ conduit_committee_zip                 <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ donor_committee_name                  <chr> NA, NA, "ACTBLUE", NA, NA, "ACTB…
+    ## $ national_committee_nonfederal_account <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ election_type                         <chr> "G2022", "G2020", "G2020", "P202…
+    ## $ election_type_full                    <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ fec_election_type_desc                <chr> "GENERAL", "GENERAL", "GENERAL",…
+    ## $ fec_election_year                     <dbl> 2022, 2020, 2020, 2020, 2020, 20…
+    ## $ two_year_transaction_period           <dbl> 2022, 2020, 2020, 2020, 2020, 20…
+    ## $ amendment_indicator                   <chr> "N", "A", "A", "A", "A", "A", "A…
+    ## $ amendment_indicator_desc              <chr> "NO CHANGE", "ADD", "ADD", "ADD"…
+    ## $ schedule_type                         <chr> "SA", "SA", "SA", "SA", "SA", "S…
+    ## $ schedule_type_full                    <chr> "ITEMIZED RECEIPTS", "ITEMIZED R…
+    ## $ increased_limit                       <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ load_date                             <dttm> 2022-12-08 03:36:04, 2020-11-14…
+    ## $ sub_id                                <dbl> 4.12072e+18, 4.11142e+18, 4.1114…
+    ## $ original_sub_id                       <lgl> NA, NA, NA, NA, NA, NA, NA, NA, …
+    ## $ back_reference_transaction_id         <chr> "7147842E", "2290263E", NA, NA, …
+    ## $ back_reference_schedule_name          <chr> "SA11AI", "SA11AI", NA, NA, "SA1…
+    ## $ pdf_url                               <chr> "https://docquery.fec.gov/cgi-bi…
+    ## $ line_number_label                     <chr> "Contributions From Individuals/…
+
+``` r
+# Pull summary data from donations variable
+summary(trone_data_raw$contribution_receipt_amount)
+```
+
+    ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+    ##        1      250      500    34873     1500 10000000
+
+``` r
+# Examine first 10 rows of data.
+head(trone_data_raw, 10)
+```
+
+    ## # A tibble: 10 × 78
+    ##    committee_id committee_name  report_year report_type image_number filing_form
+    ##    <chr>        <chr>                 <dbl> <chr>              <dbl> <chr>      
+    ##  1 C00653196    DAVID TRONE FO…        2022 12G              2.02e17 F3         
+    ##  2 C00653196    DAVID TRONE FO…        2020 Q3               2.02e17 F3         
+    ##  3 C00653196    DAVID TRONE FO…        2020 Q3               2.02e17 F3         
+    ##  4 C00653196    DAVID TRONE FO…        2019 Q2               2.02e17 F3         
+    ##  5 C00653196    DAVID TRONE FO…        2019 YE               2.02e17 F3         
+    ##  6 C00653196    DAVID TRONE FO…        2019 YE               2.02e17 F3         
+    ##  7 C00653196    DAVID TRONE FO…        2019 YE               2.02e17 F3         
+    ##  8 C00653196    DAVID TRONE FO…        2019 YE               2.02e17 F3         
+    ##  9 C00653196    DAVID TRONE FO…        2020 Q2               2.02e17 F3         
+    ## 10 C00653196    DAVID TRONE FO…        2020 Q2               2.02e17 F3         
+    ## # ℹ 72 more variables: link_id <dbl>, line_number <chr>, transaction_id <chr>,
+    ## #   file_number <dbl>, entity_type <chr>, entity_type_desc <chr>,
+    ## #   unused_contbr_id <chr>, contributor_prefix <lgl>, contributor_name <chr>,
+    ## #   recipient_committee_type <chr>, recipient_committee_org_type <lgl>,
+    ## #   recipient_committee_designation <chr>, contributor_first_name <chr>,
+    ## #   contributor_middle_name <chr>, contributor_last_name <chr>,
+    ## #   contributor_suffix <chr>, contributor_street_1 <chr>, …
 
 As I said before, the data I’m using comes from the FEC. The structure
 of the data for both candidates is identical, and there are many
@@ -86,6 +367,7 @@ I would like to note, David Trone’s base data shows several committee
 names:
 
 ``` r
+# Count different values in committee_name.
 trone_data_raw %>% 
   group_by(committee_name) %>% 
   summarise(count = n()) %>% 
@@ -101,6 +383,7 @@ trone_data_raw %>%
     ## 4 DAVID TRONE FOR MARYLAND, INC.    22
 
 ``` r
+# Replace string to standardize name across all cases.
 trone_data <- trone_data_raw %>% 
   mutate(
     committee_name = str_replace(committee_name, "DAVID TRONE.*", "DAVID TRONE FOR CONGRESS")
@@ -113,7 +396,7 @@ the `trone_data` data frame. For the purposes of this project,
 differentiating between the various committees is unimportant.
 
 ``` r
-# Combine all data sets
+# combine all data, take random sample to observe.
 all_data <- rbind(delaney_data, trone_data) %>% 
   select(committee_id, committee_name, report_year, transaction_id, 
          file_number, entity_type, entity_type_desc, unused_contbr_id, 
@@ -132,16 +415,16 @@ sample_n(all_data, 10)
     ## # A tibble: 10 × 39
     ##    committee_id committee_name            report_year transaction_id file_number
     ##    <chr>        <chr>                           <dbl> <chr>                <dbl>
-    ##  1 C00854471    APRIL MCCLAIN DELANEY FO…        2025 10301881           1937315
-    ##  2 C00854471    APRIL MCCLAIN DELANEY FO…        2024 7673002            1856142
-    ##  3 C00653196    DAVID TRONE FOR CONGRESS         2024 7812979E           1786244
-    ##  4 C00653196    DAVID TRONE FOR CONGRESS         2023 7637515E           1786247
-    ##  5 C00653196    DAVID TRONE FOR CONGRESS         2020 2288960            1437706
-    ##  6 C00653196    DAVID TRONE FOR CONGRESS         2024 7822893            1786244
-    ##  7 C00653196    DAVID TRONE FOR CONGRESS         2023 7744608            1786245
-    ##  8 C00854471    APRIL MCCLAIN DELANEY FO…        2025 9046504            1887916
-    ##  9 C00854471    APRIL MCCLAIN DELANEY FO…        2024 7729656            1856142
-    ## 10 C00854471    APRIL MCCLAIN DELANEY FO…        2025 10238066           1919412
+    ##  1 C00653196    DAVID TRONE FOR CONGRESS         2020 2480319            1449953
+    ##  2 C00653196    DAVID TRONE FOR CONGRESS         2024 7839661            1780826
+    ##  3 C00854471    APRIL MCCLAIN DELANEY FO…        2024 6155125            1800193
+    ##  4 C00653196    DAVID TRONE FOR CONGRESS         2024 7805696            1786244
+    ##  5 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8TQ3Y51        1312319
+    ##  6 C00854471    APRIL MCCLAIN DELANEY FO…        2025 9501306            1902784
+    ##  7 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8TFQFZ7        1312292
+    ##  8 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8P7E077        1241348
+    ##  9 C00854471    APRIL MCCLAIN DELANEY FO…        2024 5698696            1774998
+    ## 10 C00653196    DAVID TRONE FOR CONGRESS         2022 6656119E           1641701
     ## # ℹ 34 more variables: entity_type <chr>, entity_type_desc <chr>,
     ## #   unused_contbr_id <chr>, contributor_name <chr>,
     ## #   recipient_committee_designation <chr>, contributor_first_name <chr>,
@@ -150,12 +433,23 @@ sample_n(all_data, 10)
     ## #   contributor_street_2 <chr>, contributor_city <chr>,
     ## #   contributor_state <chr>, contributor_zip <chr>, …
 
-As we scroll a random set of 10 rows of combined data, we can see that
-the variables are already coded as they should be.
+Having observed the base data for both, as well as the combined data, we
+see that the variables are coded properly and we can proceed with the
+analysis.
 
-### Let us first see how long each candidate has been in politics:
+We’ve already learned quite a bit just from the quick glimpse we’ve had
+at both candidates’ raw data. The max contribution for Trone was
+\$10,000,000 and the max contribution for Delaney was \$825,000. We’ll
+need to find where those large donations came from.
+
+We also saw that both candidate’s data contains a big chunk of NAs,
+where columns are completely void of data. We’ll use that as a guide
+later when we’re removing some unnecessary variables.
+
+Let us first see how long each candidate has been in politics:
 
 ``` r
+# Find minimum year that occurs for each committee_name, find years since.
 minYear <- all_data %>% 
   group_by(committee_name) %>% 
   summarise(
@@ -180,6 +474,7 @@ What I want to know first is how much each candidate has contributed to
 their own campaign.
 
 ``` r
+# Calculate the number of reporting years, then calculate total personal contribution along with yearly average.
 ind_cont <- all_data %>% 
   group_by(committee_name) %>% 
   mutate(years_active = n_distinct(report_year)) %>% 
@@ -206,23 +501,32 @@ per candidate, Trone has outspent Delaney by a wide margin. Considering
 time in office smooths that number out considerably.
 
 ``` r
-# Plot for visualizing difference in contribution:
+# Plot the difference in personal contribution across candidates.
 ggplot(ind_cont) +
-  aes(x = committee_name, y = total/1000000, fill = committee_name) +
-  geom_col() +
-  labs(
-    x = "",
-    y = "Personal Contribtion (in Millions)",
-    title = "Personal Campaign Contributions",
+  aes(x = "", y = total/1000000, fill = committee_name) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +
+  geom_label(
+    aes(label = paste0("$", round(total/1000000, 1), "M")),
+    position = position_stack(vjust = 0.5),
+    fill = "white",
+    color = "black",
+    label.size = 0   # removes border (optional)
   ) +
-  theme_minimal() +
-  theme(axis.text.y = element_text(angle = 45L),
-        legend.position = "none")
+  labs(title = "Personal Campaign Contributions (in Millions)",
+       fill = "Candidate") +
+  theme_void()
 ```
 
-![](Final---GitHub_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+    ## Warning: The `label.size` argument of `geom_label()` is deprecated as of ggplot2 3.5.0.
+    ## ℹ Please use the `linewidth` argument instead.
+    ## This warning is displayed once per session.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    ## generated.
 
-At first glance, the difference between 4.5 million from Delaney and a
+![](Final---GitHub_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+At first glance, the difference between 4.6 million from Delaney and a
 whopping 114 million dollars from Trone looks like Trone is taking on
 considerable risk. Taking a closer look at the context helps explain
 this disparity.
@@ -246,7 +550,7 @@ financial disclosure shows she has a substantial portfolio. The website
 Quantitative](https://www.quiverquant.com/congresstrading/politician/April%20McClain%20Delaney-M001232/net-worth)
 estimates her net worth is just shy of 153 million dollars.
 
-## Conclusion
+### Conclusion
 
 Both Trone and Delaney are some of the wealthiest people in
 congressional politics. Given this fact, neither candidate has assumed
@@ -257,7 +561,7 @@ More importantly, this breakdown suggests the opposite of risk. Both
 candidates have a vested interest in driving legislation in a given
 direction.
 
-## What proportion of funding comes from the different types of donors?
+## Donor Types:
 
 Now I’d like to see how much money each candidate receives from outside
 donations. Because we have already observed each candidates personal
@@ -266,6 +570,7 @@ contributions from the candidate or their committee. To do this, I’ve
 written a custom function:
 
 ``` r
+# Filter function to smooth out data, remove duplicates, and remove negative/refund values.
 df_filtered <- function(df) {
   df %>%
     filter(
@@ -289,6 +594,7 @@ contribution in both candidates base data. Removing ActBlue essentially
 removes duplicates.
 
 ``` r
+# Use combined data to calculate total contribution across entity types.
 all_dist <- df_filtered(all_data) %>% 
   group_by(committee_name, entity_type_desc) %>%
   summarise(total = sum(contribution_receipt_amount, na.rm = TRUE), .groups = "drop") %>%
@@ -308,12 +614,12 @@ all_dist
     ## 6 DAVID TRONE FOR CONGRESS           POLITICAL ACTION COMMITTEE  117588.  2.81
 
 ``` r
-# Campaign Contribution by Entity Type ------------------------------------
+# Campaign Contribution by Entity Type
 ggplot(all_dist) + 
   aes(x = entity_type_desc, y = total, fill = committee_name) +
   geom_col(position = "dodge") +
   geom_text(
-    aes(label = scales::comma(total)),
+    aes(label = comma(total)),
     position = position_dodge(width = 0.9),
     vjust = -0.3,
     size = 3,
@@ -321,7 +627,7 @@ ggplot(all_dist) +
   ) +
   scale_y_continuous(labels = dollar) +
   labs(
-    fill = "candidate",
+    fill = "Candidate",
     title = "Contribution Totals by Entity Type",
     x = "",
     y = "Total Contributions"
@@ -334,7 +640,7 @@ ggplot(all_dist) +
   )
 ```
 
-![](Final---GitHub_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](Final---GitHub_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 As shown above, both candidates receive contributions form three primary
 sources:
@@ -348,7 +654,7 @@ sources:
 Now that the types of donors have been established, we can drill-down
 into each category to learn more.
 
-### Organizations
+## Organizations:
 
 As we saw above, neither candidate received much at all from
 organizations. After filtering out refunds, each candidate is left with
@@ -359,6 +665,7 @@ campaigns shows us a clearer picture of who the candidates claim to
 represent.
 
 ``` r
+# Drill down to calculate max donors by organization.
 org_max_donors <- df_filtered(all_data) %>% 
   filter(entity_type_desc == "ORGANIZATION") %>% 
   group_by(committee_name, contributor_name) %>%
@@ -427,7 +734,7 @@ Although these contributions make up only a small share of total
 funding, they still provide insight into the kinds of institutions
 willing to publicly support each campaign.
 
-### PACs
+## PACs:
 
 [PACs (political action
 committees)](https://www.fec.gov/press/resources-journalists/political-action-committees-pacs/)
@@ -444,6 +751,7 @@ Like the organization data, I want to know what PACs are donating and
 how much.
 
 ``` r
+# Drill down to calculate max donors by PAC.
 PAC_max_donors <- df_filtered(all_data) %>% 
   filter(entity_type_desc == "POLITICAL ACTION COMMITTEE") %>% 
   group_by(committee_name, contributor_name) %>%
@@ -455,9 +763,10 @@ PAC_max_donors <- df_filtered(all_data) %>%
   slice_max(total, n = 3, with_ties = FALSE) %>% 
   ungroup() %>% 
   mutate(
-    contributor_name = str_replace(contributor_name, regex(".*ISRAEL.*", ignore_case = TRUE), "AIPAC"), # Without this abbreviation, the plot overlaps and does not look good.
+    contributor_name = str_replace(contributor_name, regex(".*ISRAEL.*", ignore_case = TRUE), "AIPAC"), # Abbreviate PAC name for plotting.
     committee_name = str_replace(committee_name, "DAVID TRONE FOR CONGRESS", "Trone"),
-    committee_name = str_replace(committee_name, "APRIL MCCLAIN DELANEY FOR CONGRESS", "Delaney"))
+    committee_name = str_replace(committee_name, "APRIL MCCLAIN DELANEY FOR CONGRESS", "Delaney")) %>% 
+  arrange(committee_name, desc(total))
 PAC_max_donors
 ```
 
@@ -472,36 +781,38 @@ PAC_max_donors
     ## 6 Trone          BROOKDALE SENIOR LIVING PAC          2000
 
 ``` r
-ggplot(PAC_max_donors, aes(x = committee_name, y = total, fill = contributor_name)) +
+# Plot PAC donations by organization.
+ggplot(PAC_max_donors, aes(x = committee_name, y = total, fill = reorder(contributor_name, -total))) +
   geom_col() +
   coord_flip() +
   labs(
     x = "Candidate",
     y = "Total (in dollars)",
     title = "Distribution of PAC Contributions",
-    fill = "PAC"
+    fill = "PAC:"
   ) +
   theme_minimal() +
   theme(legend.position = "bottom") +
-  guides(fill = guide_legend(nrow = 3)) +
+  guides(fill = guide_legend(nrow = 1)) +
   scale_fill_discrete(labels = function(x) str_wrap(x, width = 25))
 ```
 
-<img src="Final---GitHub_files/figure-gfm/unnamed-chunk-13-1.png" alt="" width="100%" />
+<img src="Final---GitHub_files/figure-gfm/unnamed-chunk-19-1.png" alt="" width="100%" />
 
 Trone and Delaney both take a fair amount of money from PACs. As we can
 see, Delaney has a more even distribution than Trone, but that is mostly
 because she takes considerably more money from PACs in general. We saw
 earlier that Trone takes around \$117,000 in PAC money while Delaney
-takes over \$720,000 in PAC money.
+takes over \$730,000 in PAC money.
 
 Let’s look at these PACs and see what interests they represent:
 
 For Trone:
 
-- [AIPAC](https://www.aipac.org) is an organization seemingly composed
-  to influence law makers to promote the relationship between the United
-  States and Israel.
+- [AIPAC](https://www.aipac.org) or “American Israel Public Affairs
+  Committee” is an organization that influences law makers to promote
+  and maintain a strong relationship between the United States and
+  Israel.
 
 - [SWING LEFT](https://swingleft.org) is an organization that identifies
   swing districts and tries to turn them blue.
@@ -540,7 +851,7 @@ Taken together, this suggests that while each candidate draws support
 from issue-specific groups, both are ultimately reliant on the same
 dominant national political donor network.
 
-### Individuals
+## Individuals:
 
 A small individual donation is considered a contribution of less than
 \$200. What these small donations typically represent are ordinary
@@ -548,6 +859,7 @@ people donating to a campaign. I’d like to observe the proportion of
 individual donations that can be considered small.
 
 ``` r
+# Calculate small/large donations and their proportion to the whole.
 small_donations <- df_filtered(all_data) %>% 
   filter(entity_type_desc == "INDIVIDUAL") %>% 
   group_by(committee_name) %>% 
@@ -568,6 +880,7 @@ small_donations
     ## 2 DAVID TRONE FOR CONGRESS            1388      394      994   0.284   0.716
 
 ``` r
+# Plot the proportion of small and large donations.
 plot_small_donations <- small_donations %>% 
   select(committee_name, sd_prop, ld_prop) %>% 
   pivot_longer(
@@ -590,22 +903,22 @@ ggplot(plot_small_donations, aes(x = committee_name, y = prop, fill = type)) +
   labs(
     title = "Donation Proportion by Candidate",
     x = "",
-    y = "Number of Donations",
+    y = "Proportion of Donations",
     fill = "Donation Size"
   ) +
   theme_minimal()
 ```
 
-![](Final---GitHub_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](Final---GitHub_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
 
-The statistics continue to be unflattering for both candidates. Here we
-see that Trone and Delaney both receive the vast majority of their
-individual donations from large donors, greater than \$200.
+Here we see that Trone and Delaney both receive the vast majority of
+their individual donations from large donors, greater than \$200.
 
 For the sake of argument, let’s look at donations greater than \$1000
 and see if the stats change:
 
 ``` r
+# Calculate donations setting small = 1000 instead of small = 200.
 med_donations <- df_filtered(all_data) %>% 
   filter(entity_type_desc == "INDIVIDUAL") %>% 
   group_by(committee_name) %>% 
@@ -625,21 +938,23 @@ med_donations
     ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS  1536     1055      481   0.687   0.313
     ## 2 DAVID TRONE FOR CONGRESS            1388     1063      325   0.766   0.234
 
-![](Final---GitHub_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](Final---GitHub_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
-Even after changing the small and large to over / under \$1000, both
-candidates have a quarter or more of their donations from very large
-individual donations.
+Even after changing the small and large contributions to over / under
+\$1000, both candidates still receive a quarter or more of their
+donations from very large individual donations.
 
-Most voters are not in a position to donate to campaigns, and giving
-more than \$1,000 is out of reach for many. These numbers show how much
-campaign funding depends on a relatively small group of high-dollar
-donors and how strongly those donors shape the political landscape.
+Most voters aren’t in a position to donate to political campaigns at
+all, and contributions above \$1,000 are out of reach for most. These
+figures help illustrate the profile of donors backing each candidate,
+suggesting that a substantial share of financial support is coming from
+a more affluent segment of the population. A population whose priorities
+may differ from those of the average person.
 
-Speaking of high-dollar influence, who might be our max donors?
+Speaking of high-dollar influence, who might our max donors be?
 
 ``` r
-max_donors <- all_data %>% 
+max_donors <- df_filtered(all_data) %>% 
   filter(entity_type_desc == "INDIVIDUAL") %>% 
   group_by(committee_name, contributor_name) %>%
   summarise(
@@ -656,16 +971,20 @@ max_donors
     ## # A tibble: 6 × 3
     ##   committee_name                     contributor_name total
     ##   <chr>                              <chr>            <dbl>
-    ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS LENNON, DANIEL   16900
-    ## 2 APRIL MCCLAIN DELANEY FOR CONGRESS KARAM, MICHAEL   14900
-    ## 3 APRIL MCCLAIN DELANEY FOR CONGRESS ARCANO, ANNE     13600
-    ## 4 DAVID TRONE FOR CONGRESS           EPSTEIN, ROBERT  23000
-    ## 5 DAVID TRONE FOR CONGRESS           ABRAMSON, RONALD 20700
-    ## 6 DAVID TRONE FOR CONGRESS           WILSON, NEAL     20700
+    ## 1 APRIL MCCLAIN DELANEY FOR CONGRESS CLARE, TERESA    20200
+    ## 2 APRIL MCCLAIN DELANEY FOR CONGRESS LENNON, DANIEL   17100
+    ## 3 APRIL MCCLAIN DELANEY FOR CONGRESS KARAM, MICHAEL   14900
+    ## 4 DAVID TRONE FOR CONGRESS           OZMEN, FATIH     15200
+    ## 5 DAVID TRONE FOR CONGRESS           CRISSES, ANDREW  13000
+    ## 6 DAVID TRONE FOR CONGRESS           RUBIN, PAMELA    12800
 
 Let us go down the list and see who these folks are,
 
 For Delaney:
+
+- [Teresa
+  Clare](https://gufaculty360.georgetown.edu/s/contact/00336000014RZOrAAO/teresa-mcenroe-clare-aprn) -
+  Adjunct professor at Georgetown University.
 
 - [Daniel Lennon](https://www.lw.com/en/people/daniel-lennon) - former
   Global Chair of the firm’s Corporate Department and former Washington,
@@ -674,56 +993,58 @@ For Delaney:
 - [Michael Karam](https://www.linkedin.com/in/michael-karam-786bab10/) -
   Georgetown University Alumni Association Board of Governors
 
-- [Anne
-  Arcano](https://nysba.org/justice-for-all-luncheon-2021/?srsltid=AfmBOorCagdPPql7SD_V7_k9YCrglykYTVEEqBjXqDiHzAaiqA3vXe0Q) -
-  Lawyer with a background in tax and family law.
-
 For Trone:
 
-- [Robert Epstein](https://www.umasshillel.org/speakers.html) - No, not
-  that Epstein… President & Chief Executive Officer at Horizon Beverage,
-  a leading beverage company.
+- [Fatih Ozmen](https://www.sncorp.com/personnel/fatih-ozmen/) - CEO of
+  Sierra Nevada Corporation, an aerospace and defense company based in
+  Sparks, Nevada.
 
-- [Ronald Abramson](https://www.bipc.com/ronald-abramson) - Serves on
-  the Board of Total Wine
+- [Andrew
+  Crisses](https://www.breakthrubev.com/About/Corporate-Leadership) -
+  Executive Vice President of Breakthru Beverage Group, an alcohol
+  wholesaler.
 
-- [Neal Wilson](https://www.ejfcap.com/people/neal-wilson/) - Co-Chief
-  Executive Officer & Co-Chief Investment Officer, EJF Capital
+- [Pamela Rubin](https://riverroadvineyards.com/team/ron-rubin/) -
+  Politically active (and generous) wife of Ron Rubin, prominent
+  Missouri businessman deeply embedded in the alcohol and beverages
+  industry.
 
 It is important to recognize that these names are not random outliers.
 They are people with significant professional, financial, and social
 capital. The top donors to both campaigns are overwhelmingly drawn from
-executive leadership, corporate law, finance, and board-level positions.
-In other words, the individuals most capable of giving large sums are
-also those most embedded in institutions with a direct stake in public
-policy.
+executive leadership, corporate law, and board-level positions. Trone’s
+biggest donors are fellow executives in the beverage industry and the
+CEO of a weapons manufacturer, and Delaney’s top donors are from the
+upper echelons of academia and law. In other words, the individuals most
+capable of giving large sums are also those most embedded in
+institutions with a direct stake in public policy.
 
-## Conclusion
+### Conclusion:
 
 Whether funding comes from individuals, organizations, or PACs,
 understanding who representatives are responsive to requires close
 attention to their financial support.
 
-For both Trone and Delaney, we see a similar pattern. Some of the
-wealthiest individuals in all of congress receive the majority of their
-individual donations from large donations, and they both get a
-considerable amount of money from the same PAC.
+For both Trone and Delaney, we see a similar pattern. These are some of
+the wealthiest candidates in all of congress who receive the majority of
+their individual donations from large donations, and the majority of
+their PAC donations from the same dominant national political network.
 
-This similarity puts voters in a difficult position. Neither candidate
-appears to be primarily funded by the people they claim to represent. As
-a result, it becomes harder to evaluate their policy positions and to
-vote with confidence that a candidate’s priorities align with your own
-interests.
+This similarity puts voters in a difficult position. On paper, these two
+are very similar. Neither candidate appears to be primarily funded by
+the people they claim to represent. As a result, it becomes harder to
+evaluate their policy positions and to vote with confidence that a
+candidate’s priorities align with your own interests.
 
-## Proximity and Contribution Amount
+## Proximity and Contribution Amount:
 
 My final analysis will be of contribution amount and the proximity to
 campaign district. The 6th congressional district in MD is blue, and has
 been for a while. This isn’t a battleground district and is at no risk
 of being flipped.
 
-With this in mind, it’s useful to remember something stated earlier. The
-more an individual gives, it stands to reason the more they will expect
+Considering this fact, it’s useful to keep something in mind. It stands
+to reason that the more an individual donates, the more they will expect
 in return. Because of this, I’d like to test the claim that the further
 a donor is away from the district, the more they will donate.
 
@@ -732,7 +1053,6 @@ both Trone and Delaney to the corresponding lat/long values in the
 `ZipGeography` data frame.
 
 ``` r
-## Average distance by Contributor
 # Clean all data ZIP codes and select only necessary variables
 MD_map_data <- df_filtered(all_data) %>% 
   mutate(
@@ -751,11 +1071,12 @@ What this does is normalize the zip codes in my `all_data` data frame
 and then select only the necessary variables for my purpose.
 
 From there, I can connect a lat long table from the `dcData` package
-`ZipGeography`. That data frame lets me connect the zip codes `all_data`
-and bring over latitude and longitude values.
+`ZipGeography`. That data frame lets me connect the zip codes from
+`all_data` and bring over latitude and longitude values.
 
 ``` r
-# https://stackoverflow.com/questions/32363998/function-to-calculate-geospatial-distance-between-two-points-lat-long-using-r
+# Join the zipcode data to a lat/long table to get points on a map.
+## https://stackoverflow.com/questions/32363998/function-to-calculate-geospatial-distance-between-two-points-lat-long-using-r
 
 fred_lat <- 39.4143
 fred_long <- -77.4105
@@ -765,21 +1086,16 @@ lat_long_tbl <- MD_map_data %>%
   left_join(
     ZipGeography %>% select(ZIP, Latitude, Longitude),
     by = c("contributor_zip" = "ZIP")
-  ) %>% 
-  mutate(distance = distm(
-    x = cbind(Longitude, Latitude),
-    y = c(fred_long, fred_lat),
-    fun = distHaversine
-  )[,1] * 0.000621371)
+  )
 ```
 
 There are several points where the lat/long data is not available in the
 `ZipGeography` dataset.
 
 ``` r
+# Find all cases missing values.
 nzip_lat_long_tbl <- lat_long_tbl %>% 
   filter(is.na(Longitude)) %>% 
-  select(contributor_state, contributor_city, contributor_zip, Latitude, Longitude) %>% 
   group_by(contributor_zip) %>% 
   summarise(count = n())
 nzip_lat_long_tbl
@@ -800,10 +1116,11 @@ nzip_lat_long_tbl
     ## 10 85755               2
     ## 11 97804               1
 
-I went ahead and found lat/long each line by line and I will inject them
-into the lat/long table manually.
+I went ahead and found the lat/long value for each line and I will
+inject them into the lat/long table manually.
 
 ``` r
+# Inject missing values back into lat_long_tbl.
 missing_latlong <- tibble::tribble(
   ~contributor_zip, ~Latitude_fix, ~Longitude_fix,
   "80305", 39.976873, -105.248683,
@@ -839,7 +1156,7 @@ With these values, I calculated the distance from the congressional
 district that I’m analyzing. There are several ways to calculate
 distance, but “haversine” is essentially “as the crow flies” or a
 straight line from point a to point b. While this is not exactly
-real-world accurate, the point of the exercise is still intact.
+real-world accurate, the point of the exercise remains intact.
 
 I also had to convert meters to miles by multiplying the distance output
 by 0.000621371. This isn’t exactly necessary, but I know what 10 miles
@@ -849,13 +1166,14 @@ The goal from here is to analyze whether the distance from the candidate
 has any correlation to the amount of money someone donates to them.
 
 ``` r
+# Plot contribution amount by distance.
 distance_plot <- lat_long_tbl %>%
-  filter(distance < 3000) %>% # I have to filter out the single data point that is almost 6000 miles away...
+  filter(distance < 3000) %>% # See note on data cleaning below.
   ggplot(aes(x = distance, y = contribution_receipt_amount)) +
   geom_point(alpha = 0.3) +
   geom_smooth(method = "lm", se = TRUE, color = "blue") +
-  scale_y_log10() + # Otherwise huge outliers will skew the data
-  geom_hline(yintercept = 200, # Set a line @ over/under $200
+  scale_y_log10() + # Normalize y-axis for plotting
+  geom_hline(yintercept = 200, # Set a line @ $200
              alpha = 0.5,
              color = "red"
         ) +
@@ -863,7 +1181,7 @@ distance_plot <- lat_long_tbl %>%
   labs(
     x = "Distance (miles)",
     y = "Contribution Amount (log scale)",
-    title = "Does Distance Affect Contribution Size"
+    title = "Does Distance Affect Contribution Size?"
   ) +
   theme_minimal()
 distance_plot
@@ -871,7 +1189,7 @@ distance_plot
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-<img src="Final---GitHub_files/figure-gfm/unnamed-chunk-23-1.png" alt="" width="100%" />
+<img src="Final---GitHub_files/figure-gfm/unnamed-chunk-29-1.png" alt="" width="100%" />
 
 Here we see there is in fact a positive linear relationship between
 distance and contribution amount. Both Trone and Delaney receive
@@ -882,6 +1200,7 @@ past a certain distance you can count the number of donations less than
 1750 miles. Let’s test that:
 
 ``` r
+# Check work. Count small donations greater than 1750 miles away.
 lat_long_tbl %>% 
   filter(distance > 1750,
          contribution_receipt_amount < 200) %>% 
@@ -909,12 +1228,13 @@ east and west coast, then we can see that the Midwest is relatively
 unconcerned with the political goings on in MD’s 6th congressional
 district.
 
-### Note on Data Cleaning
+### A Note on Data Cleaning
 
 I want to make note of the value I filtered out. In Trone’s data, there
 is an inexplicable outlier.
 
 ``` r
+# Identify outlier, explain exclusion.
 outlier <- lat_long_tbl %>% 
   filter(contributor_zip == 97804) %>% 
   select(contributor_name, contributor_city, contributor_state, contributor_zip, Latitude, Longitude, distance)
@@ -991,10 +1311,10 @@ trying to display it on my github `.md` file. Because of this, I’ve
 chosen to include it as bonus content not in consideration with the rest
 of the project.
 
-The goal here was to visualize donors across both candidates and
-observes the distance some people have from the campaign district. I
-also wanted to make it interactive enough to click the various markers
-and get some information.
+The goal here was to visualize donors across both candidates and observe
+the distance some people have from the campaign district. I also wanted
+to make it interactive enough to click the various markers and get some
+information.
 
 The inspiration for this visual came from the bike sharing activity that
 also uses `leaflet` to show bike distribution and distance from a
@@ -1008,7 +1328,7 @@ This required a lot of different things to connect and work, including a
 little bit of `HTML` when formatting the popups.
 
 ``` r
-# State Contribution Map [WIP] ----------------------------------------------
+# State Contribution Map
 ## https://forum.posit.co/t/how-to-make-markers-have-different-colors-based-on-specific-variable-in-data-frame-using-leaflet-map/186922/3
 
 
@@ -1073,3 +1393,8 @@ little bit of `HTML` when formatting the popups.
 #   )
 # DonationMap
 ```
+
+<figure>
+<img src="DonationMap.png" alt="Donation Map by Candidate" />
+<figcaption aria-hidden="true">Donation Map by Candidate</figcaption>
+</figure>

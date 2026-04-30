@@ -190,3 +190,14 @@ Filtered_max_donors <- df_filtered(all_data) %>%
   ungroup()
 
 Filtered_max_donors
+
+candidate_PAC_donor_check <- df_filtered(trone_data) %>% 
+  filter(entity_type_desc == "POLITICAL ACTION COMMITTEE") %>% 
+  group_by(committee_name, contributor_name) %>%
+  summarise(
+    total = sum(contribution_receipt_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) %>% arrange(desc(total)) %>% 
+  pull(total) %>% 
+  sum(na.rm = TRUE)
+delaney_PAC_donor_check
