@@ -415,16 +415,16 @@ sample_n(all_data, 10)
     ## # A tibble: 10 × 39
     ##    committee_id committee_name            report_year transaction_id file_number
     ##    <chr>        <chr>                           <dbl> <chr>                <dbl>
-    ##  1 C00653196    DAVID TRONE FOR CONGRESS         2020 2480319            1449953
-    ##  2 C00653196    DAVID TRONE FOR CONGRESS         2024 7839661            1780826
-    ##  3 C00854471    APRIL MCCLAIN DELANEY FO…        2024 6155125            1800193
-    ##  4 C00653196    DAVID TRONE FOR CONGRESS         2024 7805696            1786244
-    ##  5 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8TQ3Y51        1312319
-    ##  6 C00854471    APRIL MCCLAIN DELANEY FO…        2025 9501306            1902784
-    ##  7 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8TFQFZ7        1312292
-    ##  8 C00653196    DAVID TRONE FOR CONGRESS         2018 VTEA8P7E077        1241348
-    ##  9 C00854471    APRIL MCCLAIN DELANEY FO…        2024 5698696            1774998
-    ## 10 C00653196    DAVID TRONE FOR CONGRESS         2022 6656119E           1641701
+    ##  1 C00854471    APRIL MCCLAIN DELANEY FO…        2023 5048578            1749612
+    ##  2 C00653196    DAVID TRONE FOR CONGRESS         2019 2288379            1437701
+    ##  3 C00653196    DAVID TRONE FOR CONGRESS         2021 4535051E           1563143
+    ##  4 C00653196    DAVID TRONE FOR CONGRESS         2024 7823065E           1786244
+    ##  5 C00653196    DAVID TRONE FOR CONGRESS         2019 2290233E           1437703
+    ##  6 C00653196    DAVID TRONE FOR CONGRESS         2020 2523434            1449953
+    ##  7 C00653196    DAVID TRONE FOR CONGRESS         2020 2290230            1437710
+    ##  8 C00854471    APRIL MCCLAIN DELANEY FO…        2023 4994444            1749612
+    ##  9 C00854471    APRIL MCCLAIN DELANEY FO…        2025 9681930            1902784
+    ## 10 C00653196    DAVID TRONE FOR CONGRESS         2024 7910040            1801975
     ## # ℹ 34 more variables: entity_type <chr>, entity_type_desc <chr>,
     ## #   unused_contbr_id <chr>, contributor_name <chr>,
     ## #   recipient_committee_designation <chr>, contributor_first_name <chr>,
